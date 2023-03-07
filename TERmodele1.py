@@ -1,46 +1,12 @@
 
-#chemin relatif vers le fichier (l'utilisation .. permet de revenir au dossier parent)
-datafileName = 'data_tresor/tresor_150.dat'
 
-#ouverture du fichier, le ferme automatiquement à la fin et gère les exceptions
-with open(datafileName, "r") as file:
-    # lecture de la 1ère ligne et séparation des éléments de la ligne
-    # dans un tableau en utilisant l'espace comme séparateur
-    line = file.readline()  
-    lineTab = line.split()
-    
-    # la valeur de la 1ère case correspond au nombre d'objets
-    # (attention de penser à convertir la chaîne de caractère en un entier)
-    nb_objets = int(lineTab[0])
-
-    # la valeur de la 2ème case correspond à la taille des sac-à-dos
-    taille = int(lineTab[1])
-
-    # création d'un tableau qui stockera les volumes des objets
-    volume = []
-    # création d'un tableau qui stockera les valeurs des objets
-    valeur = []
-    
-    # pour chaque ligne contenant les informations sur les objets
-    for i in range(nb_objets):
-        # lecture de la ligne suivante et séparation des éléments de la ligne
-        # dans un tableau en utilisant l'espace comme séparateur
-        line = file.readline()
-        lineTab = line.split()
-        
-        # ajout de l'élément de la 1ère case au tableau qui contient les volumes
-        volume.append(int(lineTab[0])) 
-        # ajout de l'élément de la 2ème case au tableau qui contient les valeurs
-        valeur.append(float(lineTab[1]))
-    
-        
-# Affichage des informations lues
-print("Nombre d'objets = ", nb_objets)
-print("Capacité des sac-à-dos = ", taille)
-print("Volume des objets = ", volume)
-print("Valeur des objets = ", valeur)
 
 # Import du paquet PythonMIP et de toutes ses fonctionnalités
+
+# données : 
+# cardinal de 
+
+
 from turtle import end_fill
 from mip import *
 # Import du paquet time pour calculer le temps de résolution

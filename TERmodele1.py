@@ -119,3 +119,4 @@ if model.num_solutions>0:
 else:
     print("Pas de solution calculée")
 print("----------------------------------\n")
+### à faire 

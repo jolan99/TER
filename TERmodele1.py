@@ -156,7 +156,7 @@ for l in range(instance.nb_locations):
     for p in range(instance.time_horizon):
         model.add_constr(
             xsum(gamma[m][l][p] for m in range(instance.nb_locations))
-            + xsum(alpha[f][l])
+            + xsum(alpha[f][l] for f in range(instance.nb_locations))
             <= 1
         )
 
@@ -209,33 +209,13 @@ for l in range(instance.nb_locations):
         )
 
 
-#
-
-
-model.add_constr(
-    xsum([x1[i] * volume[i] for i in range(nb_objets)]) <= taille, name="c1"
-)
-model.add_constr(
-    xsum([x2[i] * volume[i] for i in range(nb_objets)]) <= taille, name="c2"
-)
-
-model.add_constr(
-    xsum([x1[i] * valeur[i] for i in range(nb_objets)])
-    <= xsum([x2[i] * valeur[i] for i in range(nb_objets)]),
-    name="c3",
-)
-
-for i in range(nb_objets):
-    model.add_constr(x1[i] + x2[i] <= 1)
-
-
 status = model.optimize(max_seconds=120)
 start = time.perf_counter()
 runtime = time.perf_counter() - start
 
 
 # Ecrire le modèle
-model.write("tresor.lp")  # à décommenter si vous le souhaitez
+model.write("Blood_supply_chain.lp")  # à décommenter si vous le souhaitez
 
 # Lancement du chronomètre[x[i][0]*valeur[i] for i in range(nb_objets)]<=xsum([x[i][1]*valeur[i] for i in range(nb_objets)]),name="c3")
 
@@ -259,8 +239,9 @@ print("----------------------------------")
 
 # Si le modèle a été résolu à l'optimalité ou si une solution a été trouvée dans le temps limite accordé
 if model.num_solutions > 0:
+
     print("Solution calculée")
-    value = 0
+
     print("Objets du premier sac-dos")
     for i in range(nb_objets):
         if x1[i].x >= 0.01:

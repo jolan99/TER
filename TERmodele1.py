@@ -9,23 +9,33 @@ Budget = 20000000
 model = Model(name="Blood_supply_chain", solver_name="CBC")
 
 
-datafileName = "data_ter/1/1_22_22_2_18/deterministic.txt"
+datafileName = "data_ter/1/1_22_22_2_18"
 instance = read_data(datafileName)
-gamma = [
+# gamma = [
+#     [
+#         [
+#             model.add_var(
+#                 name="Gamma(" + str(m) + str(l) + str(p) + ")",
+#                 lb=0,
+#                 ub=1,
+#                 var_type=BINARY,
+#             )
+#             for p in range(instance.time_horizon)
+#         ]
+#     ]
+#     for l in range(instance.nb_locations)
+#     for m in range(instance.nb_locations)
+# ]
+gam = [[
     [
-        [
-            model.add_var(
-                name="Gamma(" + str(m) + str(l) + str(p) + ")",
-                lb=0,
-                ub=1,
-                var_type=BINARY,
-            )
-            for l in range(instance.nb_locations)
-        ]
+        model.add_var(
+            name="Gamma(" + str(m) + str(l) +str(p)+ ")", lb=0, ub=1, var_type=BINARY
+        )
+        for p in range(instance.time_horizon)
     ]
-    for p in range(instance.time_horizon)
-    for m in range(instance.nb_locations)
-]
+    for l in range(instance.nb_locations)
+]for m in range(instance.nb_locations)]
+
 alpha = [
     [
         model.add_var(
@@ -62,7 +72,7 @@ x = [
 s = [
     [
         model.add_var(name="S(" + str(h) + str(p) + ")", lb=0, var_type=CONTINUOUS)
-        or p in range(instance.time_horizon + 1)
+        for p in range(instance.time_horizon + 1)
     ]
     for h in range(instance.nb_donors)
 ]
@@ -98,55 +108,50 @@ model.add_constr(
     )
     + xsum(
         xsum(
-            instance.cost_temp_facility * gamma[m][l][0]
+            instance.cost_temp_facility * gam[m][l][0]
             for m in range(instance.nb_locations)
         )
         for l in range(instance.nb_locations)
     )
     + xsum(
         xsum(
-            instance.capacity_perm_facility * alpha[f][l]
+            instance.cost_perm_facility * alpha[f][l]
             for f in range(instance.nb_locations)
         )
         for l in range(instance.nb_locations)
     )
     + xsum(
-        (
             xsum(
                 s[h][p + 1] * instance.storage_cost
                 for p in range(instance.time_horizon)
             )
-            + s[h][0] * instance.initial_storage_cost
-        )
         for h in range(instance.nb_hospitals)
     )
     + xsum(
         xsum(
-            xsum(y[l][h][p] for l in range(instance.nb_locations))
-            * instance.transportation_cost
-            * instance.dis_loc_hosp[h][l]
+            xsum((y[l][h][p]* instance.dis_loc_hosp[h][l]* instance.transportation_cost) for l in range(instance.nb_locations))
             for h in range(instance.nb_hospitals)
         )
         for p in range(instance.time_horizon)
     )
-    + xsum(
-        xsum(
-            xsum(
-                xsum(
-                    instance.dist_locations[l][lbis](
-                        gamma[lbis][m][p + 1]
-                        - xsum(gamma[k][m][p] for k in range(instance.nb_locations))
-                        + gamma[l][m][p]
-                    )
-                    for lbis in range(instance.nb_locations)
-                )
-                for l in range(instance.nb_locations)
-            )
-            for m in range(instance.nb_locations)
-        )
-        for p in range(instance.time_horizon)
-    )
-    * instance.cost_moving_facility
+    # + xsum(
+    #     xsum(
+    #         xsum(
+    #             xsum(
+    #                 instance.dist_locations[l][lbis]*(
+    #                     gam[m][lbis][p + 1]
+    #                     - xsum(gam[m][k][p] for k in range(instance.nb_locations))
+    #                     + gam[m][l][p]
+    #                 )
+    #                 for lbis in range(instance.nb_locations)
+    #             )
+    #             for l in range(instance.nb_locations)
+    #         )
+    #         for m in range(instance.nb_locations)
+    #     )
+    #     for p in range(instance.time_horizon)
+    # )
+    # * instance.cost_moving_facility
     <= Budget
 )
 
@@ -155,8 +160,8 @@ model.add_constr(
 for l in range(instance.nb_locations):
     for p in range(instance.time_horizon):
         model.add_constr(
-            xsum(gamma[m][l][p] for m in range(instance.nb_locations))
-            + xsum(alpha[f][l] for f in range(instance.nb_locations))
+            xsum(gam[m][l][p] for m in range(instance.nb_locations)) +
+            xsum(alpha[f][l] for f in range(instance.nb_locations))
             <= 1
         )
 
@@ -164,19 +169,18 @@ for l in range(instance.nb_locations):
 for m in range(instance.nb_locations):
     for p in range(instance.time_horizon):
         model.add_constr(
-            xsum(gamma[m][l][p] for l in range(instance.nb_locations)) <= 1
+            xsum(gam[m][l][p] for l in range(instance.nb_locations)) <= 1
         )
 # un centre fixe ne peut être positionné qu'à une seule localisation
 for f in range(instance.nb_locations):
-    model.add_constr(xsum(alpha[m][l] for l in range(instance.nb_locations)) <= 1)
+    model.add_constr(xsum(alpha[f][l] for l in range(instance.nb_locations)) <= 1)
 
 # Si un centre mobile est utilisé, il l'est depuis la période 1 :
 for m in range(instance.nb_locations):
-    for p in range(instance.nb_locations - 1):
+    for p in range(instance.time_horizon - 1):
         model.add_constr(
-            xsum(gamma[m][l][+1] for l in range(instance.nb_locations))
-            == gamma[m][l][p]
-            for l in range(instance.nb_locations)
+            xsum(gam[m][l][p+1] for l in range(instance.nb_locations))
+            == gam[m][l][p]
         )
 
 # On ne peut pas collecter plus que ce que les donneurs peuvent donner
@@ -195,7 +199,7 @@ for l in range(instance.nb_locations):
         model.add_constr(
             xsum(x[l][p][d] for d in range(instance.nb_donors))
             <= instance.capacity_temp_facility
-            * xsum(gamma[m][l][p] for m in range(instance.nb_locations))
+            * xsum(gam[m][l][p] for m in range(instance.nb_locations))
             + instance.capacity_perm_facility
             * xsum(alpha[f][l] for f in range(instance.nb_locations))
         )
@@ -208,6 +212,19 @@ for l in range(instance.nb_locations):
             <= xsum(x[l][p][d] for d in range(instance.nb_donors))
         )
 
+# on fixe le stock et la quantité de sang manquante : 
+for h in range(instance.nb_hospitals):
+    for p in range(instance.time_horizon):
+        model.add_constr((I[h][p] + s[h][p]) == (instance.Need_hospital[h][p] - xsum(y[l][h][p] for l in range(instance.nb_locations)) - s[h][p-1]))
+
+# le stock ne peut pas excéder le stock max des hôpitaux
+for h in range(instance.nb_hospitals):
+    for p in range(instance.time_horizon):
+        model.add_constr(s[h][p] <= instance.capacity_hospital[h]) 
+
+#on met à 0 le stock initial : 
+for h in range(instance.nb_hospitals):
+    model.add_constr(s[h][0] == 0)
 
 status = model.optimize(max_seconds=120)
 start = time.perf_counter()
@@ -241,21 +258,76 @@ print("----------------------------------")
 if model.num_solutions > 0:
 
     print("Solution calculée")
+    for l in range(instance.nb_locations):
+        for p in range(instance.time_horizon):
+            for m in range(instance.nb_locations):
+                if gam[m][l][p].x == 1 :
+                  print("Un centre mobile est placé à la localisation {},{} à la période {}".format(instance.locations[l][0],instance.locations[l][0],p))
+        for f in range(instance.nb_locations):
+            if alpha[f][l].x == 1:
+                    print("Un centre fixe est construit à la localisation {},{} ".format(instance.locations[l][0],instance.locations[l][0]))
 
-    print("Objets du premier sac-dos")
-    for i in range(nb_objets):
-        if x1[i].x >= 0.01:
-            print("\t", i, " à ", x1[i].x * 100, " %")
-            value += x1[i].x * valeur[i]
-    print("Valeur du sac-à-dos : ", value)
-    value = 0
-    print("\n Objets du second sac-dos")
-    for i in range(nb_objets):
-        if x2[i].x >= 0.01:
-            print("\t", i, " à ", x2[i].x * 100, " %")
-            value += x2[i].x * valeur[i]
-    print("Valeur du sac-à-dos : ", value)
-else:
-    print("Pas de solution calculée")
+    valeur = (sum(
+        instance.collection_cost
+        * sum(
+            sum(x[l][p][d].x for d in range(instance.nb_donors))
+            for l in range(instance.nb_locations)
+        )
+        for p in range(instance.time_horizon)
+    )
+    + sum(
+        sum(
+            instance.cost_temp_facility * gam[m][l][0].x
+            for m in range(instance.nb_locations)
+        )
+        for l in range(instance.nb_locations)
+    )
+    + xsum(
+        xsum(
+            instance.capacity_perm_facility * alpha[f][l].x
+            for f in range(instance.nb_locations)
+        )
+        for l in range(instance.nb_locations)
+    )
+    + xsum(
+        (
+            xsum(
+                s[h][p + 1].x * instance.storage_cost
+                for p in range(instance.time_horizon)
+            )
+        )
+        for h in range(instance.nb_hospitals)
+    )
+    + xsum(
+        xsum(
+            xsum(y[l][h][p].x for l in range(instance.nb_locations))
+            * instance.transportation_cost
+            * instance.dis_loc_hosp[h][l]
+            for h in range(instance.nb_hospitals)
+        )
+        for p in range(instance.time_horizon)
+    )
+    # + xsum(
+    #     xsum(
+    #         xsum(
+    #             xsum(
+    #                 instance.dist_locations[l][lbis]*(
+    #                     gam[lbis][m][p + 1].x
+    #                     - xsum(gam[k][m][p].x for k in range(instance.nb_locations))
+    #                     + gam[l][m][p].x
+    #                 )
+    #                 for lbis in range(instance.nb_locations)
+    #             )
+    #             for l in range(instance.nb_locations)
+    #         )
+    #         for m in range(instance.nb_locations)
+    #     )
+    #     for p in range(instance.time_horizon)
+    # )
+    * instance.cost_moving_facility)
+
+    print("Coût des décisions : ", valeur)
+    print("quantité de sang manquante : ", xsum(xsum(I[h][p].x for h in range(instance.nb_hospitals))for p in range(instance.time_horizon)))
+    
 print("----------------------------------\n")
 ### à faire

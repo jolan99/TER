@@ -21,6 +21,7 @@ class data:
         supply_donor_group,
         locations,
         hospitals_locations,
+        Need_hospital
     ):
         self.nb_hospitals = nb_hospitals
         self.nb_locations = nb_locations
@@ -64,8 +65,7 @@ class data:
         self.dis_loc_hosp = dist_loc_hosp
 
         # on ne l'a pas mais on en a besoin :
-        self.Need_hospital = np.ones(self.nb_hospitals) * 1000
-        self.initial_storage_cost = 3
+        self.Need_hospital = Need_hospital
 
     def print(self):
         print("########## Blood supply chain instance ##########")
@@ -94,11 +94,13 @@ class data:
         )
         print("capacité groupes de donneurs : ", self.supply_donor_group)
         print("localisations : ", self.locations)
-        print("localisatoins hôpitaux", self.hospitals_locations)
+        print("localisations hôpitaux", self.hospitals_locations)
         print("matrice des distances entre les localisations : ")
         print(self.dist_locations)
         print("matrice des distances entre les hôpitaux et les localisations : ")
         print(self.dis_loc_hosp)
+        print("Moyenne demande des hôpitaux : ", self.Need_hospital)
+        print("coût installation des bus fixes ", self.cost_temp_facility)
 
 
 # print(LatLongToKm(44.0335, -0.90008,43.4569, 1.27299))
@@ -116,7 +118,7 @@ def LatLongToKm(LatitudeA, LongitudeA, LatitudeB, LongitudeB):
 
 
 def read_data(datafileName):
-    with open(datafileName, "r") as file:
+    with open(datafileName +"/deterministic.txt", "r") as file:
         # lecture de la 1ère ligne et séparation des éléments de la ligne
         # dans un tableau en utilisant l'espace comme séparateur
         # 1ere ligne
@@ -129,14 +131,14 @@ def read_data(datafileName):
         # 2eme ligne
         line = file.readline()
         lineTab = line.split()
-        capacity_perm_facility = lineTab[0]
-        capacity_temp_facility = lineTab[1]
+        capacity_perm_facility = float(lineTab[0])
+        capacity_temp_facility = float(lineTab[1])
         # 3eme ligne
         line = file.readline()
         lineTab = line.split()
         capacity_hospital = []
         for h in range(nb_hospitals):
-            capacity_hospital.append(int(lineTab[h]))
+            capacity_hospital.append(float(lineTab[h]))
         # 4eme ligne
         line = file.readline()
         lineTab = line.split()
@@ -169,6 +171,28 @@ def read_data(datafileName):
             lineTab = line.split()
             hospitals_locations[l][0] = float(lineTab[0])
             hospitals_locations[l][1] = float(lineTab[1])
+
+    with open(datafileName +"/uncertain.txt", "r") as file:
+        line = file.readline()
+        lineTab = line.split()
+        Need_hospital = np.zeros((nb_hospitals,time_horizon))
+        nb_scenarios = int(lineTab[1])
+        #worst_case = float('inf')
+        if int(lineTab[0]) == nb_hospitals : 
+            if int(lineTab[2]) == time_horizon : #on vérifie qu'on soit bien dans le même cas que le déterministic
+                for scenario in range(nb_scenarios):
+                    line = file.readline()
+                    lineTab = line.split()
+                    for p in range(time_horizon):
+                        for h in range(nb_hospitals):
+                            Need_hospital[h][p] += float(lineTab[h+p])
+                Need_hospital = Need_hospital / nb_scenarios
+            else : 
+                print("Il y a un problème au niveau du nombre de périodes à l'étude")
+        else : 
+            print("Il y a un problème avce le nombre d'hôpital")
+
+
     instance = data(
         nb_hospitals,
         nb_locations,
@@ -186,6 +210,7 @@ def read_data(datafileName):
         supply_donor_group,
         locations,
         hospitals_locations,
+        Need_hospital
     )
     return instance
 

@@ -9,23 +9,9 @@ Budget = 20000000
 model = Model(name="Blood_supply_chain", solver_name="CBC")
 
 
-datafileName = "data_ter/1/1_22_22_2_18"
+datafileName = "data_ter/2/2_22_22_2_18"
 instance = read_data(datafileName)
-# gamma = [
-#     [
-#         [
-#             model.add_var(
-#                 name="Gamma(" + str(m) + str(l) + str(p) + ")",
-#                 lb=0,
-#                 ub=1,
-#                 var_type=BINARY,
-#             )
-#             for p in range(instance.time_horizon)
-#         ]
-#     ]
-#     for l in range(instance.nb_locations)
-#     for m in range(instance.nb_locations)
-# ]
+
 gam = [[
     [
         model.add_var(
@@ -134,24 +120,24 @@ model.add_constr(
         )
         for p in range(instance.time_horizon)
     )
-    # + xsum(
-    #     xsum(
-    #         xsum(
-    #             xsum(
-    #                 instance.dist_locations[l][lbis]*(
-    #                     gam[m][lbis][p + 1]
-    #                     - xsum(gam[m][k][p] for k in range(instance.nb_locations))
-    #                     + gam[m][l][p]
-    #                 )
-    #                 for lbis in range(instance.nb_locations)
-    #             )
-    #             for l in range(instance.nb_locations)
-    #         )
-    #         for m in range(instance.nb_locations)
-    #     )
-    #     for p in range(instance.time_horizon)
-    # )
-    # * instance.cost_moving_facility
+    + xsum(
+        xsum(
+            xsum(
+                xsum(
+                    instance.dist_locations[l][lbis]*(
+                        gam[m][lbis][p + 1]
+                        - xsum(gam[m][k][p] for k in range(instance.nb_locations))
+                        + gam[m][l][p]
+                    )
+                    for lbis in range(instance.nb_locations)
+                )
+                for l in range(instance.nb_locations)
+            )
+            for m in range(instance.nb_locations)
+        )
+        for p in range(instance.time_horizon-1)
+    )
+    * instance.cost_moving_facility
     <= Budget
 )
 
@@ -226,7 +212,7 @@ for h in range(instance.nb_hospitals):
 for h in range(instance.nb_hospitals):
     model.add_constr(s[h][0] == 0)
 
-status = model.optimize(max_seconds=120)
+status = model.optimize(max_seconds=30)
 start = time.perf_counter()
 runtime = time.perf_counter() - start
 
@@ -307,23 +293,23 @@ if model.num_solutions > 0:
         )
         for p in range(instance.time_horizon)
     )
-    # + xsum(
-    #     xsum(
-    #         xsum(
-    #             xsum(
-    #                 instance.dist_locations[l][lbis]*(
-    #                     gam[lbis][m][p + 1].x
-    #                     - xsum(gam[k][m][p].x for k in range(instance.nb_locations))
-    #                     + gam[l][m][p].x
-    #                 )
-    #                 for lbis in range(instance.nb_locations)
-    #             )
-    #             for l in range(instance.nb_locations)
-    #         )
-    #         for m in range(instance.nb_locations)
-    #     )
-    #     for p in range(instance.time_horizon)
-    # )
+    + xsum(
+        xsum(
+            xsum(
+                xsum(
+                    instance.dist_locations[l][lbis]*(
+                        gam[lbis][m][p + 1].x
+                        - xsum(gam[k][m][p].x for k in range(instance.nb_locations))
+                        + gam[l][m][p].x
+                    )
+                    for lbis in range(instance.nb_locations)
+                )
+                for l in range(instance.nb_locations)
+            )
+            for m in range(instance.nb_locations)
+        )
+        for p in range(instance.time_horizon-1)
+    )
     * instance.cost_moving_facility)
 
     print("Coût des décisions : ", valeur)

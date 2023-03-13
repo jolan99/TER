@@ -100,7 +100,8 @@ class data:
         print("matrice des distances entre les hôpitaux et les localisations : ")
         print(self.dis_loc_hosp)
         print("Moyenne demande des hôpitaux : ", self.Need_hospital)
-        print("coût installation des bus fixes ", self.cost_temp_facility)
+        print("coût installation des bus fixes ", self.cost_perm_facility)
+        print("coût installation des bus mobiles ", self.cost_temp_facility)
 
 
 # print(LatLongToKm(44.0335, -0.90008,43.4569, 1.27299))
@@ -215,6 +216,6 @@ def read_data(datafileName):
     return instance
 
 
-# datafileName = 'data_ter/1/1_22_22_2_18/deterministic.txt'
+# datafileName = 'data_ter/1/1_22_22_2_18'
 # instance = read_data(datafileName)
 # instance.print()

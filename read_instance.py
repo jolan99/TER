@@ -21,7 +21,8 @@ class data:
         supply_donor_group,
         locations,
         hospitals_locations,
-        Need_hospital
+        Need_hospital,
+        valid
     ):
         self.nb_hospitals = nb_hospitals
         self.nb_locations = nb_locations
@@ -39,6 +40,7 @@ class data:
         self.supply_donor_group = supply_donor_group
         self.locations = locations
         self.hospitals_locations = hospitals_locations
+        self.valid = valid # ce bool s'assure que l'instance est valide. si ce n'est pas valide, les modeles ne seront pas lancés
 
         # ici on calcule la matrice des distances entre les localisations
         dist_locations = np.zeros((self.nb_locations, self.nb_locations))
@@ -118,7 +120,7 @@ def LatLongToKm(LatitudeA, LongitudeA, LatitudeB, LongitudeB):
     return dist
 
 
-def read_data(datafileName):
+def read_data(datafileName,cas):
     with open(datafileName +"/deterministic.txt", "r") as file:
         # lecture de la 1ère ligne et séparation des éléments de la ligne
         # dans un tableau en utilisant l'espace comme séparateur
@@ -176,22 +178,49 @@ def read_data(datafileName):
     with open(datafileName +"/uncertain.txt", "r") as file:
         line = file.readline()
         lineTab = line.split()
-        Need_hospital = np.zeros((nb_hospitals,time_horizon))
         nb_scenarios = int(lineTab[1])
         #worst_case = float('inf')
         if int(lineTab[0]) == nb_hospitals : 
             if int(lineTab[2]) == time_horizon : #on vérifie qu'on soit bien dans le même cas que le déterministic
-                for scenario in range(nb_scenarios):
-                    line = file.readline()
-                    lineTab = line.split()
-                    for p in range(time_horizon):
-                        for h in range(nb_hospitals):
-                            Need_hospital[h][p] += float(lineTab[h+p])
-                Need_hospital = Need_hospital / nb_scenarios
+                if cas == "average_case":
+                    Need_hospital = np.zeros((nb_hospitals,time_horizon))
+                    for scenario in range(nb_scenarios):
+                        line = file.readline()
+                        lineTab = line.split()
+                        for p in range(time_horizon):
+                            for h in range(nb_hospitals):
+                                Need_hospital[h][p] += float(lineTab[h+p])
+                    Need_hospital = Need_hospital / nb_scenarios
+                    valid = True
+                elif cas == "worst_case":
+                    Need_hospital = np.zeros((nb_hospitals,time_horizon))
+                    for scenario in range(nb_scenarios):
+                        line = file.readline()
+                        lineTab = line.split()
+                        for p in range(time_horizon):
+                            for h in range(nb_hospitals):
+                                if Need_hospital[h][p] <= float(lineTab[h+p]) : # il faudrait quand même vérifier que ça fait bien ce qu'on veut
+                                    Need_hospital[h][p] = float(lineTab[h+p])
+                    valid = True
+                elif cas == "best_case" :
+                    Need_hospital = np.ones((nb_hospitals,time_horizon)) * 100000000
+                    for scenario in range(nb_scenarios):
+                        line = file.readline()
+                        lineTab = line.split()
+                        for p in range(time_horizon):
+                            for h in range(nb_hospitals):
+                                if Need_hospital[h][p] >= float(lineTab[h+p]) : # il faudrait quand même vérifier que ça fait bien ce qu'on veut
+                                    Need_hospital[h][p] = float(lineTab[h+p])
+                    valid = True
+                else :
+                    print("Le cas '", cas," ' n'est pas reconnu. Le choix est entre average_case, worst_case et best_case")
+                    valid = False
             else : 
                 print("Il y a un problème au niveau du nombre de périodes à l'étude")
+                valid = False
         else : 
             print("Il y a un problème avce le nombre d'hôpital")
+            valid = False
 
 
     instance = data(
@@ -211,7 +240,8 @@ def read_data(datafileName):
         supply_donor_group,
         locations,
         hospitals_locations,
-        Need_hospital
+        Need_hospital,
+        valid
     )
     return instance
 

@@ -1,20 +1,12 @@
 from read_instance import *
 from class_solution import *
-# from turtle import end_fill
 from mip import *
 import time
 
-# Création du modèle vide
-Budget = 20000000
-#model = Model(name="Blood_supply_chain", solver_name="CBC")
 
 
-datafileName = "data_ter/1/1_22_22_2_50"
-#instance = read_data(datafileName,average_case)
-
-def Model1_CBC(datafileName,Budget,cas):
+def Model1_CBC(instance,Budget,temps_limite):
     model = Model(name="Blood_supply_chain", solver_name="CBC")
-    instance = read_data(datafileName,cas)
     if instance.valid == True :
         gam = [[
             [
@@ -216,8 +208,8 @@ def Model1_CBC(datafileName,Budget,cas):
         for h in range(instance.nb_hospitals):
             model.add_constr(s[h][0] == 0)
 
-        status = model.optimize(max_seconds=30)
         start = time.perf_counter()
+        status = model.optimize(max_seconds=temps_limite)
         runtime = time.perf_counter() - start
 
 
@@ -246,17 +238,6 @@ def Model1_CBC(datafileName,Budget,cas):
 
         # Si le modèle a été résolu à l'optimalité ou si une solution a été trouvée dans le temps limite accordé
         if model.num_solutions > 0:
-
-            # print("Solution calculée")
-            # for l in range(instance.nb_locations):
-            #     for p in range(instance.time_horizon):
-            #         for m in range(instance.nb_locations):
-            #             if gam[m][l][p].x == 1 :
-            #                 print("Un centre mobile est placé à la localisation {},{} à la période {}".format(instance.locations[l][0],instance.locations[l][0],p))
-            #     for f in range(instance.nb_locations):
-            #         if alpha[f][l].x == 1:
-            #                 print("Un centre fixe est construit à la localisation {},{} ".format(instance.locations[l][0],instance.locations[l][0]))
-
             cost = (sum(
                 instance.collection_cost
                 * sum(
@@ -334,4 +315,5 @@ def Model1_CBC(datafileName,Budget,cas):
     else :
         print("Le modèle n'a pas tourné car l'instance n'est pas bonne")
         sol = solution(0,0,np.zeros((instance.nb_locations,instance.nb_locations,instance.time_horizon)),np.zeros((instance.nb_locations,instance.nb_locations)))
-    return sol
+        runtime = -1
+    return sol,runtime

@@ -9,14 +9,26 @@ class model:
             self.datafileName = datafileName
             self.Budget = Budget
             self.cas = cas
-    def solve(self):
+    def solve(self,affichage,temps_limite): # affichage est un bool qui donne si on veut afficher les résultats ou pas
+           instance = read_data(datafileName,self.cas)
            if self.solveur == "CBC" :
                 if self.sol_init == False:
-                    return Model1_CBC(self.datafileName,self.Budget,self.cas)
+                    sol, runtime = Model1_CBC(instance,self.Budget,temps_limite)
+                    if affichage == True :
+                        sol.print(instance)
+                    return sol
                 else :
-                     print("pas encore fait")
-           else :
+                    print("pas encore fait") # ici c'est si on met une solution initiale avec des centres fixes déjà construits
+           elif self.solveur == "GUROBI" :
                 print("pas encore fait")
+           elif self.solveur == "LocalSolver" :
+                print("pas encore fait")
+           elif self.solveur == "CPLEX" :
+                print("pas encore fait")
+           else :
+                print("Le solver n'est pas reconnu. Essayer avec les solvers CBC, GUROBI, LocalSolver, ou CPLEX")
+
+         
 
 
 
@@ -26,7 +38,6 @@ class model:
 
 Budget = 20000000
 datafileName = 'data_ter/1/1_22_22_2_50'
-#instance = read_data(datafileName,)
-modele = model("CBC",False,datafileName,Budget,"worst_case")
-sol = modele.solve()
-#sol.print(instance)
+
+model("CBC",False,datafileName,Budget,"worst_case").solve(False,30)
+# model( solveur, solu initiale, instance, budget, cas).solve(afficher solutions, temps limite)

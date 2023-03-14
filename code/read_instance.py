@@ -247,5 +247,5 @@ def read_data(datafileName,cas):
 
 
 # datafileName = 'data_ter/1/1_22_22_2_18'
-# instance = read_data(datafileName)
+# instance = read_data(datafileName,"average_case")
 # instance.print()

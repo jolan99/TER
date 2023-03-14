@@ -302,18 +302,23 @@ def Model1_CBC(instance,Budget,temps_limite):
             print("quantité de sang manquante : ", objective_value)
             
         print("----------------------------------\n")
-        ### à faire
+        ### On sauvegarde les résultats : 
         centres_f = np.zeros((instance.nb_locations,instance.nb_locations))
         centres_m = np.zeros((instance.nb_locations,instance.nb_locations,instance.time_horizon))
+        qtt_transf = np.zeros((instance.nb_locations,instance.nb_hospitals,instance.time_horizon))
+        qtt_collect = np.zeros((instance.nb_locations,instance.time_horizon,instance.nb_donors))
+        stock = np.zeros((instance.nb_hospitals,instance.time_horizon+1))
+        qtt_manquante = np.zeros((instance.nb_hospitals,instance.time_horizon+1))
         for l in range(instance.nb_locations):
             for f in range(instance.nb_locations):
                 centres_f[f][l] = alpha[f][l].x
             for p in range(instance.time_horizon):
                 for m in range(instance.nb_locations):
                     centres_m[m][l][p] = gam[m][l][p].x
-        sol = solution(objective_value,cost,centres_m,centres_f)
+        sol = solution(objective_value,cost,centres_m,centres_f,qtt_transf,qtt_collect,stock,qtt_manquante)
+        return sol,runtime
     else :
         print("Le modèle n'a pas tourné car l'instance n'est pas bonne")
-        sol = solution(0,0,np.zeros((instance.nb_locations,instance.nb_locations,instance.time_horizon)),np.zeros((instance.nb_locations,instance.nb_locations)))
-        runtime = -1
-    return sol,runtime
+        # sol = solution(0,0,np.zeros((instance.nb_locations,instance.nb_locations,instance.time_horizon)),np.zeros((instance.nb_locations,instance.nb_locations)))
+        # runtime = -1
+    

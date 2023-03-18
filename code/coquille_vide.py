@@ -1,4 +1,5 @@
 from class_model import *
+from checker import *
 #dans un premier temps, on considère : 
     # qu'il n'y a qu'un seul hôpital 
     # Qu'une seule période ( donc deux en comptant la période 0)
@@ -51,3 +52,4 @@ instance = data(
     )
 sol,runtime = Model1_CBC(instance,1000,30)
 sol.print(instance)
+print("checker : ",checker(sol,instance))

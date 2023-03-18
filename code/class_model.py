@@ -39,5 +39,5 @@ class model:
 Budget = 20000000
 datafileName = 'data_ter/1/1_22_22_2_50'
 
-model("CBC",False,datafileName,Budget,"worst_case").solve(True,30)
+#model("CBC",False,datafileName,Budget,"worst_case").solve(True,30)
 #model( solveur, solu initiale, instance, budget, cas).solve(afficher solutions, temps limite)

@@ -156,6 +156,7 @@ def Model1_CBC(instance,Budget,temps_limite):
                 model.add_constr(
                     xsum(gam[m][l][p] for l in range(instance.nb_locations)) <= 1
                 ,name="c2(" +str(m) + str(p)+")")
+
         # un centre fixe ne peut être positionné qu'à une seule localisation
         for f in range(instance.nb_locations):
             model.add_constr(xsum(alpha[f][l] for l in range(instance.nb_locations)) <= 1,name="c3(" +str(f)+")")
@@ -208,7 +209,7 @@ def Model1_CBC(instance,Budget,temps_limite):
                 model.add_constr(s[h][p+1] <= xsum(y[l][h][p] for l in range(instance.nb_locations))) 
         # le stock ne peut pas excéder le stock max des hôpitaux
         for h in range(instance.nb_hospitals):
-            for p in range(instance.time_horizon):
+            for p in range(instance.time_horizon+1):
                 model.add_constr(s[h][p] <= instance.capacity_hospital[h],name="c9(" +str(h) + str(p)+")") 
 
         #on met à 0 le stock initial : 

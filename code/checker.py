@@ -97,13 +97,16 @@ def checker(sol,instance):
         if (float(sol.objective_value) <= (besoin_total - qtt_totale)-0.0001 )or(float(sol.objective_value) >= (besoin_total - qtt_totale)+0.0001 ) :
             print("ERREUR : la valeur de l'objectif est de {} mais devrait être de {}".format(sol.objective_value,(besoin_total - qtt_totale)))
             return False 
-
+    
+    # faire un checker : on ne peut pas envoyer de sang s'il n'y a pas de centre, et ça ne doit pas dépsser la capacité max
+    # faire un checker : vérifier le coût 
+    
         
 
     return True
     
 
-datafileName = 'data_ter/1/1_22_22_2_50'
+datafileName = 'data_ter/1/1_22_22_2_18'
 
 sol = model("CBC",False,datafileName,Budget,"worst_case").solve(True,30)
 instance = read_data(datafileName,"worst_case")

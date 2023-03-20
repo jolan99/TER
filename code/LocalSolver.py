@@ -7,16 +7,19 @@ with localsolver .LocalSolver() as ls:
     n = ls.model
 
     Budget = 20000000
-    datafileName = "data_ter/test"
+    # datafileName = "data_ter/test"
+    datafileName = "data_ter/1/1_22_22_2_50"
     instance = read_data(datafileName,"average_case")
 
     #### déclaration des variables : 
 
     #gam[instance.nb_locations][instance.nb_locations][instance.time_horizon] = bool()
     #gam1 = [[m.bool() for p in range(instance.time_horizon)]for l in range(instance.nb_locations)]
-    gam = [[[n.int(0,1) for p in range(instance.time_horizon)]for l in range(instance.nb_locations)]for m in range(instance.nb_locations)]
+    # gam = [[[n.int(0,1) for p in range(instance.time_horizon)]for l in range(instance.nb_locations)]for m in range(instance.nb_locations)]
+    gam = [[[n.bool() for p in range(instance.time_horizon)] for l in range(instance.nb_locations)] for m in range(instance.nb_locations)]
 
-    alpha = [[n.int(0,1) for l in range(instance.nb_locations)]for f in range(instance.nb_locations)]
+    # alpha = [[n.int(0,1) for l in range(instance.nb_locations)]for f in range(instance.nb_locations)]
+    alpha = [[n.bool() for l in range(instance.nb_locations)]for f in range(instance.nb_locations)]
 
     x = [[[n.int(0,1000000) for d in range(instance.nb_donors)] for p in range(instance.time_horizon)] for l in range(instance.nb_locations)]
 
@@ -24,8 +27,26 @@ with localsolver .LocalSolver() as ls:
     
     s = [[n.int(0,1000000) for p in range(instance.time_horizon + 1)]for h in range(instance.nb_hospitals)]
 
-    I = [[n.int(0,1000000) for p in range(instance.time_horizon)]for h in range(instance.nb_hospitals)]
+    manquant = [[n.int(0,1000000) for p in range(instance.time_horizon)]for h in range(instance.nb_hospitals)]
 
+    # ce que j'ai du rajouter : 
+    b = [[n.bool() for p in range(instance.time_horizon)]for h in range(instance.nb_hospitals)]
+    for l in range(instance.nb_locations):
+        for p in range(instance.time_horizon):
+            for m in range(instance.nb_locations):
+                gam[m][l][p].set_name('centre_mobile{}_à_la_loc_{}_à_la_période {}'.format(m,l,p))
+            for h in range(instance.nb_hospitals):
+                y[l][h][p].set_name('l hopital{}_recoit_de_la_loc_{}_à_la_période {}'.format(h,l,p))
+            for d in range(instance.nb_donors):
+                x[l][p][d].set_name('la position_{}_recoit_des_donneurs_{}_à_la_période_{}'.format(l,d,p))
+        for f in range(instance.nb_locations):
+            alpha[f][l].set_name('centre_fixe{}_à_la_loc_{}'.format(f,l))
+    for h in range(instance.nb_hospitals):
+        for p in range(instance.time_horizon):
+            manquant[h][p].set_name('manquant_de_l_hopital{}_à_période{}'.format(h,p))
+        for p in range(instance.time_horizon+1):
+            s[h][p].set_name('stock_de l_hopital{}_à_période{}'.format(h,p))
+        
     #### contraintes
 
     #coût : 
@@ -35,7 +56,7 @@ with localsolver .LocalSolver() as ls:
             n.sum(x[l][p][d] for d in range(instance.nb_donors))
             for l in range(instance.nb_locations)
         )
-        for p in range(instance.time_horizon)        # p = 1 ou p = 0
+        for p in range(instance.time_horizon)      
     )
     + n.sum(
         n.sum(
@@ -47,20 +68,20 @@ with localsolver .LocalSolver() as ls:
     + n.sum(
         n.sum(
             instance.cost_perm_facility * alpha[f][l]
-            for l in range(instance.nb_locations)
+            for f in range(instance.nb_locations)
         )
-        for f in range(instance.nb_locations)
+        for l in range(instance.nb_locations)
     )
     + n.sum(
             n.sum(
-                s[h][p] * instance.storage_cost             #Cstock = Cinit + s[h][0]*instance.storage_cost
+                s[h][p+1] * instance.storage_cost             #Cstock = Cinit + s[h][0]*instance.storage_cost
                 for p in range(instance.time_horizon)
             )
         for h in range(instance.nb_hospitals)
     )
     + n.sum(
         n.sum(
-            n.sum(y[l][h][p] * instance.dist_locations[l][h] * instance.transportation_cost 
+            n.sum(y[l][h][p] * instance.dist_locations[h][l] * instance.transportation_cost 
             for l in range(instance.nb_locations))
             for h in range(instance.nb_hospitals)
         )
@@ -71,9 +92,9 @@ with localsolver .LocalSolver() as ls:
             n.sum(
                 n.sum(
                     instance.dist_locations[l][lbis]*(
-                        gam[lbis][m][p]
-                        - n.sum(gam[k][m][p-1] for k in range(instance.nb_locations))
-                        + gam[m][l][p-1]
+                        gam[m][lbis][p+1]
+                        - n.sum(gam[m][k][p] for k in range(instance.nb_locations))
+                        + gam[m][l][p]
                     )
                     for lbis in range(instance.nb_locations)
                 )
@@ -81,7 +102,7 @@ with localsolver .LocalSolver() as ls:
             )
             for m in range(instance.nb_locations)
         )
-        for p in range(1, instance.time_horizon)
+        for p in range(instance.time_horizon-1)
     )
     * instance.cost_moving_facility
     <= Budget)
@@ -107,10 +128,10 @@ with localsolver .LocalSolver() as ls:
 
     # Si un centre mobile est utilisé, il l'est depuis la période 1 :
     for m in range(instance.nb_locations):
-        for p in range(1, instance.time_horizon):
+        for p in range(instance.time_horizon,1):
             n.constraint(
-                n.sum(gam[m][l][p] for l in range(instance.nb_locations))
-                == n.sum(gam[m][l][p-1] for l in range(instance.nb_locations))
+                n.sum(gam[m][l][p+1] for l in range(instance.nb_locations))
+                == gam[m][l][p]
             )
 
     # On ne peut pas collecter plus que ce que les donneurs peuvent donner
@@ -143,9 +164,10 @@ with localsolver .LocalSolver() as ls:
             )
 
     # on fixe le stock et la quantité de sang manquante : 
-    for h in range(instance.nb_hospitals):          ######FAUX##########
+    for h in range(instance.nb_hospitals):          
         for p in range(instance.time_horizon):
-           n.constraint((I[h][p] + s[h][p]) == (instance.Need_hospital[h][p] - n.sum(y[l][h][p] for l in range(instance.nb_locations)) - s[h][p-1]))
+           n.constraint((manquant[h][p] + s[h][p+1] -instance.Need_hospital[h][p] + n.sum(y[l][h][p] for l in range(instance.nb_locations)) + s[h][p]) == 0)
+
 
     # le stock ne peut pas excéder le stock max des hôpitaux
     for h in range(instance.nb_hospitals):
@@ -155,12 +177,25 @@ with localsolver .LocalSolver() as ls:
     #on met à 0 le stock initial : 
     for h in range(instance.nb_hospitals):
         n.constraint(s[h][0] == 0)
+
+    # ce que j'ai dû rajouter pour que ça fonctionne : 
+
+    for h in range(instance.nb_hospitals):
+            for p in range(instance.time_horizon):
+                n.constraint(manquant[h][p] >= 0)
+                n.constraint(manquant[h][p] >= instance.Need_hospital[h][p] - n.sum(y[l][h][p] for l in range(instance.nb_locations)) - s[h][p])
+                n.constraint(manquant[h][p] <= instance.Need_hospital[h][p]*(1-b[h][p]))
+                n.constraint(manquant[h][p] <= instance.Need_hospital[h][p] - n.sum(y[l][h][p] for l in range(instance.nb_locations)) - s[h][p]+instance.Need_hospital[h][p]*b[h][p])
     
+    # on ne peut pas stocker plus que ce qu'on reçoit à l'hôpital
+    for h in range(instance.nb_hospitals):
+        for p in range(instance.time_horizon):
+            n.constraint(s[h][p+1] <= n.sum(y[l][h][p] for l in range(instance.nb_locations)))   
     
     ####  objectif 
 
   
-    objectif = n.sum(n.sum(I[h][p] for p in range(instance.time_horizon))for h in range(instance.nb_hospitals))
+    objectif = n.sum(n.sum(manquant [h][p] for p in range(instance.time_horizon))for h in range(instance.nb_hospitals))
     
     n.minimize(objectif)
 

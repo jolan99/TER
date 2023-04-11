@@ -1,7 +1,8 @@
 from read_instance import *
 from TERmodele1 import *
+from checker import *
 
-import time
+# import time
 class model:
     def __init__(self,solveur,sol_init,datafileName,Budget,cas):
           self.solveur = solveur
@@ -9,11 +10,13 @@ class model:
           self.datafileName = datafileName
           self.Budget = Budget
           self.cas = cas
-    def solve(self,affichage,temps_limite): # affichage est un bool qui donne si on veut afficher les résultats ou pas
-          instance = read_data(datafileName,self.cas)
+    def solve(self,affichage,temps_limite): 
+          instance = read_data(self.datafileName,self.cas)
           if self.solveur == "CBC" :
                if self.sol_init == False:
                     sol, runtime = Model1_CBC(instance,self.Budget,temps_limite)
+                    # Checker(sol,instance)
+                    # print("checker : ",Checker(sol,instance))
                     if affichage == True :
                         sol.print(instance)
                     return sol
@@ -36,8 +39,8 @@ class model:
     
                 
 
-Budget = 20000000
-datafileName = 'data_ter/1/1_22_22_2_50'
+# Budget = 20000000
+# datafileName = 'data_ter/1/1_22_22_2_50'
 
 #model("CBC",False,datafileName,Budget,"worst_case").solve(True,30)
 #model( solveur, solu initiale, instance, budget, cas).solve(afficher solutions, temps limite)

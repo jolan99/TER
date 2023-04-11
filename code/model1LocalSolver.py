@@ -142,7 +142,7 @@ for l in range(instance.nb_locations):
     # on fixe le stock et la quantité de sang manquante : 
     for h in range(instance.nb_hospitals):
         for p in range(instance.time_horizon):
-            m.constraint((I[h][p] + s[h][p]) == (instance.Need_hospital[h][p] - m.sum(y[l][h][p] for l in range(instance.nb_locations)) - s[h][p-1]))
+            m.constraint((I[h][p] - s[h][p]) >= (instance.Need_hospital[h][p] - m.sum(y[l][h][p] for l in range(instance.nb_locations)) - s[h][p-1]))
 
     # le stock ne peut pas excéder le stock max des hôpitaux
     for h in range(instance.nb_hospitals):

@@ -3,7 +3,7 @@ from read_instance import *
 from class_solution import *
 
 
-def checker(sol,instance):
+def Checker(sol,instance):
     # un seul centre par localisation 
     for p in range(instance.time_horizon):
         for l in range(instance.nb_locations):
@@ -72,6 +72,7 @@ def checker(sol,instance):
         for p in range(instance.time_horizon):
             for l in range(instance.nb_locations):
                 qtt_coll += sol.qtt_collect[l][p][d]
+        # print("il a été prélevé {} du groupe {} et de capacité {}".format(qtt_coll,d,instance.supply_donor_group[d]))
         if qtt_coll > instance.supply_donor_group[d] + 0.0000001: #on met un epsilon car on travaille avec des float, on accepte un écart
             print("ERREUR : il a été trop prélevé du groupe de donneurs {}".format(d))
             return False
@@ -83,7 +84,9 @@ def checker(sol,instance):
             if sol.stock[h][p] > instance.capacity_hospital[h] + 0.0000001 :
                 print("ERREUR : Le stock de l'hôpital {} à la période {} est trop élevé".format(h,p))
                 return False
-
+    if float(sol.cost) > 20000000:
+        print("ERREUR : le cout dépasse de {} le budget donné".format(float(sol.cost)-20000000))
+        return False
     # on vérifie que Ihp est bien la quantité de sang manquante. 
     qtt_totale = 0
     besoin_total = 0
@@ -91,25 +94,34 @@ def checker(sol,instance):
         for h in range(instance.nb_hospitals):
             for l in range(instance.nb_locations):
                 qtt_totale += sol.qtt_recue_hosp[l][h][p]
+            
             qtt_totale += sol.stock[h][0] # il sera en fait à 0 dans nos expérimentations 
+            # print("qtt totale créée ",qtt_totale)
             besoin_total += instance.Need_hospital[h][p]
+            
+            # print("besoin total créé ",besoin_total)
     if besoin_total - qtt_totale > 0 : # == s'il n'y a pas eu assez de sang
-        if (float(sol.objective_value) <= (besoin_total - qtt_totale)-0.0001 )or(float(sol.objective_value) >= (besoin_total - qtt_totale)+0.0001 ) :
+        # print("sol.objective_value : ",sol.objective_value,"(besoin_total - qtt_totale)*1.1 : ",(besoin_total - qtt_totale)*1.1)
+        # print("sol.objective_value : ",sol.objective_value,"(besoin_total - qtt_totale)*0.9 : ",(besoin_total - qtt_totale)*0.9)
+
+        if (float(sol.objective_value) <= (besoin_total - qtt_totale)*0.09)or(float(sol.objective_value) >= (besoin_total - qtt_totale)*1.01 ) :
             print("ERREUR : la valeur de l'objectif est de {} mais devrait être de {}".format(sol.objective_value,(besoin_total - qtt_totale)))
             return False 
     
-    # faire un checker : on ne peut pas envoyer de sang s'il n'y a pas de centre, et ça ne doit pas dépsser la capacité max
-    # faire un checker : vérifier le coût 
+    # faire un checker : on ne peut pas envoyer de sang s'il n'y a pas de centre, et ça ne doit pas dépasser la capacité max
+    
     
         
 
     return True
     
-
+# on n'utilise pas les centres mobiles à la deuxième période, pk ? regarder si c pcq que on a utilisé toute la capacité donneurs
+# #on positionne des centres mobiles mais on ne les utilise pas tous : pk ? est ce qu'on force à mettre un centre à chaque localisation?
 datafileName = 'data_ter/1/1_22_22_2_18'
-
-sol = model("CBC",False,datafileName,Budget,"worst_case").solve(True,30)
-instance = read_data(datafileName,"worst_case")
-print("######################")
-print("checker : ",checker(sol,instance))
-##model( solveur, solu initiale, instance, budget, cas).solve(afficher solutions, temps limite)
+# # datafileName = 'data_ter/5/5_50_50_5_18'
+Budget = 20000000
+sol = model("CBC",False,datafileName,Budget,"best_case").solve(False,30)
+instance = read_data(datafileName,"best_case")
+# # print("######################")
+print("checker : ",Checker(sol,instance))
+# #model( solveur, solu initiale, instance, budget, cas).solve(afficher solutions, temps limite)

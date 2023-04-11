@@ -30,7 +30,7 @@ with localsolver .LocalSolver() as ls:
     manquant = [[n.int(0,1000000) for p in range(instance.time_horizon)]for h in range(instance.nb_hospitals)]
 
     # ce que j'ai du rajouter : 
-    b = [[n.bool() for p in range(instance.time_horizon)]for h in range(instance.nb_hospitals)]
+    # b = [[n.bool() for p in range(instance.time_horizon)]for h in range(instance.nb_hospitals)]
     for l in range(instance.nb_locations):
         for p in range(instance.time_horizon):
             for m in range(instance.nb_locations):
@@ -166,7 +166,7 @@ with localsolver .LocalSolver() as ls:
     # on fixe le stock et la quantité de sang manquante : 
     for h in range(instance.nb_hospitals):          
         for p in range(instance.time_horizon):
-           n.constraint((manquant[h][p] + s[h][p+1] -instance.Need_hospital[h][p] + n.sum(y[l][h][p] for l in range(instance.nb_locations)) + s[h][p]) == 0)
+           n.constraint((manquant[h][p] - s[h][p+1] -instance.Need_hospital[h][p] + n.sum(y[l][h][p] for l in range(instance.nb_locations)) + s[h][p]) >= 0)
 
 
     # le stock ne peut pas excéder le stock max des hôpitaux
@@ -180,12 +180,12 @@ with localsolver .LocalSolver() as ls:
 
     # ce que j'ai dû rajouter pour que ça fonctionne : 
 
-    for h in range(instance.nb_hospitals):
-            for p in range(instance.time_horizon):
-                n.constraint(manquant[h][p] >= 0)
-                n.constraint(manquant[h][p] >= instance.Need_hospital[h][p] - n.sum(y[l][h][p] for l in range(instance.nb_locations)) - s[h][p])
-                n.constraint(manquant[h][p] <= instance.Need_hospital[h][p]*(1-b[h][p]))
-                n.constraint(manquant[h][p] <= instance.Need_hospital[h][p] - n.sum(y[l][h][p] for l in range(instance.nb_locations)) - s[h][p]+instance.Need_hospital[h][p]*b[h][p])
+    # for h in range(instance.nb_hospitals):
+    #         for p in range(instance.time_horizon):
+    #             n.constraint(manquant[h][p] >= 0)
+    #             n.constraint(manquant[h][p] >= instance.Need_hospital[h][p] - n.sum(y[l][h][p] for l in range(instance.nb_locations)) - s[h][p])
+    #             n.constraint(manquant[h][p] <= instance.Need_hospital[h][p]*(1-b[h][p]))
+    #             n.constraint(manquant[h][p] <= instance.Need_hospital[h][p] - n.sum(y[l][h][p] for l in range(instance.nb_locations)) - s[h][p]+instance.Need_hospital[h][p]*b[h][p])
     
     # on ne peut pas stocker plus que ce qu'on reçoit à l'hôpital
     for h in range(instance.nb_hospitals):

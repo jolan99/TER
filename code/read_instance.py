@@ -1,5 +1,5 @@
 import numpy as np
-from class_model import *
+# from class_model import *
 from TERmodele1 import *
 from math import *
 
@@ -260,6 +260,7 @@ def read_data(datafileName,cas,sol_init,Budget,temps_limite):
                 if int(lineTab[2]) == time_horizon : #on vérifie qu'on soit bien dans le même cas que le déterministic
                     # if cas == "average_case":
                         Need_hospital = np.zeros((nb_hospitals,time_horizon))
+                        count = np.zeros(nb_locations)
                         for scenario in range(nb_scenarios):  ## pour chaque scenario, on va faire tourner le modele. 
                             line = file.readline()
                             lineTab = line.split()
@@ -267,7 +268,9 @@ def read_data(datafileName,cas,sol_init,Budget,temps_limite):
                                 for h in range(nb_hospitals):
                                     Need_hospital[h][p] += float(lineTab[h+p])
                         
-                            valid = True
+                            valid = True #il n'y a pas d'erreur avec la lecture des instances
+                            
+
                             instance = data(
                                 nb_hospitals,
                                 nb_locations,
@@ -289,31 +292,18 @@ def read_data(datafileName,cas,sol_init,Budget,temps_limite):
                                 valid
                             )
                             sol, runtime = Model1_CBC(instance,Budget,temps_limite)
-                            print(" ici on tourne")
-                        # sol = Modelize("CBC",True,datafileName,Budget,"worst_case").solve(False,30)
-                    # elif cas == "worst_case":
-                    #     Need_hospital = np.zeros((nb_hospitals,time_horizon))
-                    #     for scenario in range(nb_scenarios):
-                    #         line = file.readline()
-                    #         lineTab = line.split()
-                    #         for p in range(time_horizon):
-                    #             for h in range(nb_hospitals):
-                    #                 if Need_hospital[h][p] <= float(lineTab[h+p]) : # il faudrait quand même vérifier que ça fait bien ce qu'on veut
-                    #                     Need_hospital[h][p] = float(lineTab[h+p])
-                    #     valid = True
-                    # elif cas == "best_case" :
-                    #     Need_hospital = np.ones((nb_hospitals,time_horizon)) * 100000000
-                    #     for scenario in range(nb_scenarios):
-                    #         line = file.readline()
-                    #         lineTab = line.split()
-                    #         for p in range(time_horizon):
-                    #             for h in range(nb_hospitals):
-                    #                 if Need_hospital[h][p] >= float(lineTab[h+p]) : # il faudrait quand même vérifier que ça fait bien ce qu'on veut
-                    #                     Need_hospital[h][p] = float(lineTab[h+p])
-                    #     valid = True
-                    # else :
-                    #     print("Le cas '", cas," ' n'est pas reconnu. Le choix est entre average_case, worst_case et best_case")
-                    #     valid = False
+                            for centre in range(nb_locations):
+                                for loc in range(nb_locations):
+                                    if sol.centres_f[centre][loc] == 1:
+                                        count[loc] += 1
+                        print("cout: ")
+                        print(count)
+
+                        centres_fixes_initiaux = np.zeros(nb_locations)
+                        for i in range(nb_locations):
+                            if count[i] >= cas*(nb_scenarios):
+                                centres_fixes_initiaux[i] += 1
+    
                 else : 
                     print("Il y a un problème au niveau du nombre de périodes à l'étude")
                     valid = False
@@ -340,7 +330,7 @@ def read_data(datafileName,cas,sol_init,Budget,temps_limite):
             Need_hospital,
             valid
         )
-        return instance
+        return instance, centres_fixes_initiaux
         
     else : 
         print("ERREUR : Il n'est pas reconnu s'il y a une solution initiale ou pas. Essayez False ou True")
@@ -349,9 +339,10 @@ def read_data(datafileName,cas,sol_init,Budget,temps_limite):
     
 
 
-datafileName = 'data_ter/1/1_22_22_2_18'
-Budget = 200000
-temps_limite = 30
-instance = read_data(datafileName,"average_case",True,Budget,temps_limite)
-# datafileName,cas,sol_init,Budget,temps_limite
-# instance.print()
+# datafileName = 'data_ter/1/1_22_22_2_18'
+# Budget = 200000
+# temps_limite = 30
+# # instance = read_data(datafileName,"average_case",True,Budget,temps_limite)
+# read_data(datafileName,"average_case",False,Budget,temps_limite)
+# # datafileName,cas,sol_init,Budget,temps_limite
+# # instance.print()

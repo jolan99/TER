@@ -1,4 +1,4 @@
-from read_instance import *
+# from read_instance import *
 from class_solution import *
 from mip import *
 import time

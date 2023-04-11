@@ -12,16 +12,16 @@ class solution:
         print("Solution trouvée")
         ###  le code suivant affiche quels centres sont placés, où et quand : 
 
-        # print("La quantite de sang manquante est ", self.objective_value, " et la solution a coute " , self.cost)
-        # for l in range(instance.nb_locations):
-        #     for p in range(instance.time_horizon):
-        #         for m in range(instance.nb_locations):
-        #             if self.centres_m[m][l][p] == 1 :
-        #                 # print("Le centre mobile {} est placé à la localisation {},{} à la période {}".format(m,instance.locations[l][0],instance.locations[l][1],p+1))
-        #                 print("Le centre mobile {} est placé à la localisation {} à la période {}".format(m,l,p+1))
-        #     for f in range(instance.nb_locations):
-        #         if self.centres_f[f][l] == 1:
-        #                 print("Le centre fixe {} est construit à la localisation {},{} ".format(f,instance.locations[l][0],instance.locations[l][1]))
+        print("La quantite de sang manquante est ", self.objective_value, " et la solution a coute " , self.cost)
+        for l in range(instance.nb_locations):
+            for p in range(instance.time_horizon):
+                for m in range(instance.nb_locations):
+                    if self.centres_m[m][l][p] == 1 :
+                        # print("Le centre mobile {} est placé à la localisation {},{} à la période {}".format(m,instance.locations[l][0],instance.locations[l][1],p+1))
+                        print("Le centre mobile {} est placé à la localisation {} à la période {}".format(m,l,p+1))
+            for f in range(instance.nb_locations):
+                if self.centres_f[f][l] == 1:
+                        print("Le centre fixe {} est construit à la localisation {},{} ".format(f,instance.locations[l][0],instance.locations[l][1]))
         
 
         ### Le code suivant affiche la quantité de sang passant par le lieu l (qtt collectée et combien elle envoie à qui )

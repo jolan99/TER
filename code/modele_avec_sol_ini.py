@@ -5,7 +5,7 @@ import time
 
 
 
-def Model2_CBC_sol_ini(instance,Budget,temps_limite,sol_ini):
+def Model2_CBC_sol_ini(instance,Budget,temps_limite,centres_fixes_initiaux):
     model = Model(name="Blood_supply_chain", solver_name="CBC")
     model.verbose = False # on ne veut pas de détails 
 
@@ -30,7 +30,7 @@ def Model2_CBC_sol_ini(instance,Budget,temps_limite,sol_ini):
         #     ]
         #     for f in range(instance.nb_locations)
         # ]
-        alpha = sol_ini
+        alpha = centres_fixes_initiaux
         y = [
             [
                 [
@@ -100,10 +100,7 @@ def Model2_CBC_sol_ini(instance,Budget,temps_limite,sol_ini):
                 for l in range(instance.nb_locations)
             )
             + xsum(
-                xsum(
-                    instance.cost_perm_facility * alpha[f][l]
-                    for f in range(instance.nb_locations)
-                )
+                instance.cost_perm_facility * alpha[l]
                 for l in range(instance.nb_locations)
             )
             + xsum(
@@ -147,7 +144,7 @@ def Model2_CBC_sol_ini(instance,Budget,temps_limite,sol_ini):
             for p in range(instance.time_horizon):
                 model.add_constr(
                     xsum(gam[m][l][p] for m in range(instance.nb_locations)) +
-                    xsum(alpha[f][l] for f in range(instance.nb_locations))
+                    alpha[l] 
                     <= 1
                 ,name="c1(" +str(l) + str(p)+")")
 
@@ -158,9 +155,9 @@ def Model2_CBC_sol_ini(instance,Budget,temps_limite,sol_ini):
                     xsum(gam[m][l][p] for l in range(instance.nb_locations)) <= 1
                 ,name="c2(" +str(m) + str(p)+")")
 
-        # un centre fixe ne peut être positionné qu'à une seule localisation
-        for f in range(instance.nb_locations):
-            model.add_constr(xsum(alpha[f][l] for l in range(instance.nb_locations)) <= 1,name="c3(" +str(f)+")")
+        # # un centre fixe ne peut être positionné qu'à une seule localisation // devenue inutile avec les conditions initiales
+        # for f in range(instance.nb_locations):
+        #     model.add_constr(xsum(alpha[f][l] for l in range(instance.nb_locations)) <= 1,name="c3(" +str(f)+")")
 
         # Si un centre mobile est utilisé, il l'est depuis la période 1 :
         for m in range(instance.nb_locations):
@@ -188,7 +185,7 @@ def Model2_CBC_sol_ini(instance,Budget,temps_limite,sol_ini):
                     <= instance.capacity_temp_facility
                     * xsum(gam[m][l][p] for m in range(instance.nb_locations))
                     + instance.capacity_perm_facility
-                    * xsum(alpha[f][l] for f in range(instance.nb_locations))
+                    * alpha[l]
                 ,name="c6(" +str(l) + str(p)+")")
 
         # On ne peut pas envoyer à un hôpital plus que ce qui a été collecté
@@ -316,10 +313,7 @@ def Model2_CBC_sol_ini(instance,Budget,temps_limite,sol_ini):
 
             cost = (sum(instance.collection_cost* sum(sum(x[l][p][d].x for d in range(instance.nb_donors))for l in range(instance.nb_locations))for p in range(instance.time_horizon)) + sum(sum((instance.cost_temp_facility * gam[m][l][0].x) for m in range(instance.nb_locations))for l in range(instance.nb_locations))
             + sum(
-                sum(
-                    instance.cost_perm_facility * alpha[f][l].x
-                    for f in range(instance.nb_locations)
-                )
+                instance.cost_perm_facility * alpha[l]
                 for l in range(instance.nb_locations)
             )
             + sum(
@@ -367,9 +361,12 @@ def Model2_CBC_sol_ini(instance,Budget,temps_limite,sol_ini):
         stock = np.zeros((instance.nb_hospitals,instance.time_horizon+1))
         qtt_manquante = np.zeros((instance.nb_hospitals,instance.time_horizon+1))
         # les centres utilisés, quand et où :
+        iterateur = 0
         for l in range(instance.nb_locations):
-            for f in range(instance.nb_locations):
-                centres_f[f][l] = alpha[f][l].x
+            if alpha[l] == 1:   ## si il y a un centre sur un lieu, on doit y associer le numéro d'un centre fixe. 
+                centres_f[iterateur][l] = 1 ## et on ne peut pas y mettre le même centre fixe pour passer le checker
+                iterateur +=1
+
             for p in range(instance.time_horizon):
                 for m in range(instance.nb_locations):
                     centres_m[m][l][p] = gam[m][l][p].x

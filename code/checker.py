@@ -111,7 +111,7 @@ def Checker(sol,instance):
     # faire un checker : on ne peut pas envoyer de sang s'il n'y a pas de centre, et ça ne doit pas dépasser la capacité max
     
     
-        
+   
 
     return True
     

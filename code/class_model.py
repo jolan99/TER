@@ -3,7 +3,7 @@ from TERmodele1 import *
 from checker import *
 
 # import time
-class model:
+class Modelize:
     def __init__(self,solveur,sol_init,datafileName,Budget,cas):
           self.solveur = solveur
           self.sol_init = sol_init
@@ -42,5 +42,5 @@ class model:
 # Budget = 20000000
 # datafileName = 'data_ter/1/1_22_22_2_50'
 
-#model("CBC",False,datafileName,Budget,"worst_case").solve(True,30)
-#model( solveur, solu initiale, instance, budget, cas).solve(afficher solutions, temps limite)
+# sol = Modelize("CBC",False,datafileName,Budget,"worst_case").solve(True,30)
+# #model( solveur, solu initiale, instance, budget, cas).solve(afficher solutions, temps limite)

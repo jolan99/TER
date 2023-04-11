@@ -107,4 +107,4 @@ instance = data(
     )
 sol,runtime = Model1_CBC(instance,1000,30)
 sol.print(instance)
-print("checker : ",checker(sol,instance))
+print("checker : ",Checker(sol,instance))

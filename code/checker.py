@@ -115,13 +115,14 @@ def Checker(sol,instance):
 
     return True
     
-# on n'utilise pas les centres mobiles à la deuxième période, pk ? regarder si c pcq que on a utilisé toute la capacité donneurs
-# #on positionne des centres mobiles mais on ne les utilise pas tous : pk ? est ce qu'on force à mettre un centre à chaque localisation?
-datafileName = 'data_ter/1/1_22_22_2_18'
-# # datafileName = 'data_ter/5/5_50_50_5_18'
-Budget = 20000000
-sol = model("CBC",False,datafileName,Budget,"best_case").solve(False,30)
-instance = read_data(datafileName,"best_case")
-# # print("######################")
-print("checker : ",Checker(sol,instance))
-# #model( solveur, solu initiale, instance, budget, cas).solve(afficher solutions, temps limite)
+# # on n'utilise pas les centres mobiles à la deuxième période, pk ? regarder si c pcq que on a utilisé toute la capacité donneurs
+# # #on positionne des centres mobiles mais on ne les utilise pas tous : pk ? est ce qu'on force à mettre un centre à chaque localisation?
+# datafileName = 'data_ter/1/1_22_22_2_18'
+# # # datafileName = 'data_ter/5/5_50_50_5_18'
+# Budget = 20000000
+# sol = model("CBC",False,datafileName,Budget,"best_case").solve(False,30)
+
+# instance = read_data(datafileName,"best_case")
+# # # print("######################")
+# print("checker : ",Checker(sol,instance))
+# # #model( solveur, solu initiale, instance, budget, cas).solve(afficher solutions, temps limite)

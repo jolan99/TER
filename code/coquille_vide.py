@@ -105,6 +105,6 @@ instance = data(
         Need_hospital,
         valid
     )
-sol,runtime = Model1_CBC(instance,1000,30)
-sol.print(instance)
-print("checker : ",Checker(sol,instance))
+# sol,runtime = Model1_CBC(instance,1000,30)
+# sol.print(instance)
+# print("checker : ",Checker(sol,instance))

@@ -5,7 +5,7 @@ import time
 
 
 
-def Model1_CBC(instance,Budget,temps_limite):
+def Model2_CBC_sol_ini(instance,Budget,temps_limite,sol_ini):
     model = Model(name="Blood_supply_chain", solver_name="CBC")
     model.verbose = False # on ne veut pas de détails 
 
@@ -21,15 +21,16 @@ def Model1_CBC(instance,Budget,temps_limite):
             for l in range(instance.nb_locations)
         ]for m in range(instance.nb_locations)]
 
-        alpha = [
-            [
-                model.add_var(
-                    name="Alpha(" + str(f) + str(l) + ")", lb=0, ub=1, var_type=BINARY
-                )
-                for l in range(instance.nb_locations)
-            ]
-            for f in range(instance.nb_locations)
-        ]
+        # alpha = [
+        #     [
+        #         model.add_var(
+        #             name="Alpha(" + str(f) + str(l) + ")", lb=0, ub=1, var_type=BINARY
+        #         )
+        #         for l in range(instance.nb_locations)
+        #     ]
+        #     for f in range(instance.nb_locations)
+        # ]
+        alpha = sol_ini
         y = [
             [
                 [

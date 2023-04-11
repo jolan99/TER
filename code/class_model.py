@@ -11,7 +11,7 @@ class Modelize:
           self.Budget = Budget
           self.cas = cas
     def solve(self,affichage,temps_limite): 
-          instance = read_data(self.datafileName,self.cas)
+          instance = read_data(self.datafileName,self.cas,self.sol_init,self.Budget,temps_limite)
           if self.solveur == "CBC" :
                if self.sol_init == False:
                     sol, runtime = Model1_CBC(instance,self.Budget,temps_limite)

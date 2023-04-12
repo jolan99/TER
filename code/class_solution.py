@@ -1,5 +1,5 @@
 class solution:
-     def __init__(self,objective_value,cost,centres_m,centres_f,qtt_recue_hosp,qtt_collect,stock,qtt_manquante):
+     def __init__(self,objective_value,cost,centres_m,centres_f,qtt_recue_hosp,qtt_collect,stock,qtt_manquante,nom_instance,time):
         self.objective_value = objective_value
         self.cost = cost
         self.centres_m = centres_m
@@ -8,6 +8,8 @@ class solution:
         self.qtt_collect = qtt_collect
         self.stock = stock
         self.qtt_manquante = qtt_manquante
+        self.nom_instance=nom_instance
+        self.time = time
      def print(self,instance):
         print("Solution trouvée")
         ###  le code suivant affiche quels centres sont placés, où et quand : 

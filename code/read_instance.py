@@ -24,7 +24,8 @@ class data:
         locations,
         hospitals_locations,
         Need_hospital,
-        valid
+        valid,
+        datafileName
     ):
         self.nb_hospitals = nb_hospitals
         self.nb_locations = nb_locations
@@ -43,7 +44,7 @@ class data:
         self.locations = locations
         self.hospitals_locations = hospitals_locations
         self.valid = valid # ce bool s'assure que l'instance est valide. si ce n'est pas valide, les modeles ne seront pas lancés
-
+        self.datafileName = datafileName
         # ici on calcule la matrice des distances entre les localisations
         dist_locations = np.zeros((self.nb_locations, self.nb_locations))
         for locationA in range(self.nb_locations):
@@ -124,6 +125,7 @@ def LatLongToKm(LatitudeA, LongitudeA, LatitudeB, LongitudeB):
 
 def read_data(datafileName,cas,sol_init,Budget,temps_limite):
     with open("./"+datafileName +"/deterministic.txt", "r") as file:
+    # with open(datafileName +"/deterministic.txt", "r") as file:
         # lecture de la 1ère ligne et séparation des éléments de la ligne
         # dans un tableau en utilisant l'espace comme séparateur
         # 1ere ligne
@@ -242,7 +244,8 @@ def read_data(datafileName,cas,sol_init,Budget,temps_limite):
             locations,
             hospitals_locations,
             Need_hospital,
-            valid
+            valid,
+            datafileName
         )
         return instance
     
@@ -250,7 +253,8 @@ def read_data(datafileName,cas,sol_init,Budget,temps_limite):
     #### Dans le cas où on a une solution initiale : 
     #### Pour chaque scenario de training.txt, on fait tourner le modele. 
     elif sol_init == True:
-        with open(datafileName +"/training.txt", "r") as file:
+        # with open(datafileName +"/training.txt", "r") as file:
+        with open('./'+datafileName +"/training.txt", "r") as file:
             line = file.readline()
             lineTab = line.split()
             nb_scenarios = int(lineTab[1])
@@ -343,6 +347,6 @@ def read_data(datafileName,cas,sol_init,Budget,temps_limite):
 # Budget = 200000
 # temps_limite = 30
 # # instance = read_data(datafileName,"average_case",True,Budget,temps_limite)
-# read_data(datafileName,"average_case",False,Budget,temps_limite)
+# instance = read_data(datafileName,"average_case",False,Budget,temps_limite)
 # # datafileName,cas,sol_init,Budget,temps_limite
-# # instance.print()
+# instance.print()

@@ -1,3 +1,5 @@
+# import pandas as pd
+# from read_instance import *
 class solution:
      def __init__(self,objective_value,cost,centres_m,centres_f,qtt_recue_hosp,qtt_collect,stock,qtt_manquante,nom_instance,time):
         self.objective_value = objective_value
@@ -49,10 +51,11 @@ class solution:
                 for l in range(instance.nb_locations):
                     qtt_recue += self.qtt_recue_hosp[l][h][p]
                 print("l'hôpital {} a besoin de {}, reçoit {}, stocke {} et manque {} de sang et il y avait avant {}".format(h,instance.Need_hospital[h][p],qtt_recue,self.stock[h][p+1], self.qtt_manquante[h][p],self.stock[h][p]))
-
+     
                 
+                        
 
 
-        
+            
 
 

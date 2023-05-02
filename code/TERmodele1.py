@@ -8,7 +8,7 @@ import time
 def Model1_CBC(instance,Budget,temps_limite):
     model = Model(name="Blood_supply_chain", solver_name="CBC")
     model.verbose = False # on ne veut pas de détails 
-
+    # print("Budget : ", Budget)
     # b = [[model.add_var(name="b(" + str(h) + str(p)+")", lb = 0, ub=0,var_type=BINARY) for p in range(instance.time_horizon)]for h in range(instance.nb_hospitals)]
     if instance.valid == True :
         gam = [[

@@ -1,6 +1,6 @@
-from class_model import *
-from read_instance import *
-from class_solution import *
+# # from class_model import *
+# from read_instance import *
+# from class_solution import *
 
 
 def Checker(sol,instance):
@@ -120,9 +120,11 @@ def Checker(sol,instance):
 # datafileName = 'data_ter/1/1_22_22_2_18'
 # # # datafileName = 'data_ter/5/5_50_50_5_18'
 # Budget = 20000000
-# sol = model("CBC",False,datafileName,Budget,"best_case").solve(False,30)
+# temps_limite = 30
+# sol = Modelize("CBC",False,datafileName,Budget,"best_case").solve(False,30)
 
-# instance = read_data(datafileName,"best_case")
+# instance = read_data(datafileName,"best_case",False,Budget,temps_limite)
+# # (datafileName,cas,sol_init,Budget,temps_limite)
 # # # print("######################")
 # print("checker : ",Checker(sol,instance))
 # # #model( solveur, solu initiale, instance, budget, cas).solve(afficher solutions, temps limite)

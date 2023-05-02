@@ -388,7 +388,8 @@ def Model2_CBC_sol_ini(instance,Budget,temps_limite,centres_fixes_initiaux):
         for p in range(instance.time_horizon):
             for h in range(instance.nb_hospitals):
                 qtt_manquante[h][p] = I[h][p]
-        sol = solution(objective_value,cost,centres_m,centres_f,qtt_recue_hosp,qtt_collect,stock,qtt_manquante)
+        sol = solution(objective_value,cost,centres_m,centres_f,qtt_recue_hosp,qtt_collect,stock,qtt_manquante,instance.datafileName,runtime)
+
         # for h in range(instance.nb_hospitals):
         #     for p in range(instance.time_horizon):
         #         # print("debugggg : ")

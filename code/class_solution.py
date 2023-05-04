@@ -51,11 +51,25 @@ class solution:
                 for l in range(instance.nb_locations):
                     qtt_recue += self.qtt_recue_hosp[l][h][p]
                 print("l'hôpital {} a besoin de {}, reçoit {}, stocke {} et manque {} de sang et il y avait avant {}".format(h,instance.Need_hospital[h][p],qtt_recue,self.stock[h][p+1], self.qtt_manquante[h][p],self.stock[h][p]))
-     
-                
-                        
-
-
-            
-
-
+  
+     def write(self,inst,name,file,cas):
+        fixe = ""
+        mobile = ["" for per in range(inst.time_horizon)]
+        for l in range(inst.nb_locations):
+            for p in range(inst.time_horizon):
+                for m in range(inst.nb_locations):
+                    if self.centres_m[m][l][p] == 1 :
+                        mobile[p] += str(l)+", "
+            for f in range(inst.nb_locations):
+                if self.centres_f[f][l] == 1:
+                    fixe += str(l) +", "
+        with open("solution" + file[8:] +"/"+ name + "_"+ str(cas), "w") as fichier:
+            fichier.write("------" + "solution" + file[8:] +"/"+ name + "-------\n")
+            fichier.write("\nLa quantité de sang manquante " + str(self.objective_value) + "calculée en ...\n")
+            fichier.write("Le coût de ka solution est " +  str(self.cost) +" et le budjet est de ...\n")
+            fichier.write("\nLes centres fixes sont positionnés aux localisations " + fixe+"\n")
+            for p in range(inst.time_horizon):
+                if mobile[p] == "":
+                   fichier.write("\nPériode " + str(p) + ": pas de centres mobiles positionnés") 
+                else : 
+                    fichier.write("\nPériode " + str(p) + ": Les centres mobiles sont positionnés aux localisations " + mobile[p])

@@ -5,7 +5,7 @@ from class_solution import *
 from TERmodele1 import *
 from checker import *
 import pandas as pd
-import streamlit as st
+#import streamlit as st
 
 # # datafileName = 'data_ter/1/1_22_22_2_18'
 # datafileName = 'data_ter/1/1_22_22_2_50'
@@ -64,10 +64,10 @@ import streamlit as st
 ## on veut faire tourner sur les quatre cas et afficher dans un fichier : 
 
 fichier = open("resulats.txt", "w")
-fichier.write("Nom de l'instance;best_case;average_case;worst_case;all_scenarios;0.999%;0.9%;0.8%;0.5%;worst_case;best_case;average_case")
+fichier.write("Nom de l'instance;best_case;average_case;worst_case;all_scenarios;999%;90%;80%;70%;60%;50%;40%;30%;20%;10%;worst_case;best_case;average_case")
 
-for datafileName in('data_ter/1/1_22_22_2_18','data_ter/1/1_22_22_2_50','data_ter/1/1_22_22_3_18','data_ter/1/1_22_22_3_50','data_ter/1/1_22_22_3_18','data_ter/2/2_22_22_2_18','data_ter/2/2_22_22_2_50'):
-# for datafileName in('data_ter/1/1_22_22_2_18','data_ter/1/1_22_22_2_50'):
+#for datafileName in('data_ter/1/1_22_22_2_18','data_ter/1/1_22_22_2_50','data_ter/1/1_22_22_3_18','data_ter/1/1_22_22_3_50','data_ter/1/1_22_22_3_18','data_ter/2/2_22_22_2_18','data_ter/2/2_22_22_2_50'):
+for datafileName in('data_ter/1/1_22_22_2_18','data_ter/1/1_22_22_2_50'):
 
     print("debug : ",datafileName)
 
@@ -83,8 +83,8 @@ for datafileName in('data_ter/1/1_22_22_2_18','data_ter/1/1_22_22_2_50','data_te
     sol = Modelize("CBC",False,datafileName,Budget,"all").solve(False,30)
     fichier.write(";")
     fichier.write(str(sol))
-    sol = Modelize("CBC",True,datafileName,Budget,[0.999,0.9,0.8,0.5,"worst_case","best_case","average_case"]).solve(False,30)
-    print("La sol est " ,sol)
+    sol = Modelize("CBC",True,datafileName,Budget,[0.999,0.9,0.8,0.7,0.6,0.5,0.4,0.3,0.2,0.1,"worst_case","best_case","average_case"]).solve(False,30)
+    print("La sol  moyenne est " ,sol)
     for i in range(len(sol)):
         fichier.write(";")
         fichier.write(str(sol[i]))

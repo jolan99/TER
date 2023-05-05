@@ -94,7 +94,10 @@ class Modelize:
                               if int(lineTab[2]) == instance.time_horizon : #on vérifie qu'on soit bien dans le même cas que le déterministic
                                    
                                    count = np.zeros(instance.nb_locations) # va nous servir pour le critère de choix plus tard
+                                   compte_scenarios = 0
                                    for scenario in range(nb_scenarios):
+                                        compte_scenarios += 1
+                                        print("scenario  de training: ", compte_scenarios)
                                         Need_hospital = np.zeros((instance.nb_hospitals,instance.time_horizon))
                                         Need_hospital_bestC = np.ones((instance.nb_hospitals,instance.time_horizon))*1000000
                                         Need_hospital_worstC = np.zeros((instance.nb_hospitals,instance.time_horizon))
@@ -108,10 +111,10 @@ class Modelize:
                                                   
                                                   ## on sauvegarde les cas aux cas où : 
                                                   if "best_case" in self.cas :
-                                                       if Need_hospital_bestC[h][p] >= float(lineTab[h+p]) : 
+                                                       if Need_hospital_bestC[h][p] <= float(lineTab[h+p]) : 
                                                             Need_hospital_bestC[h][p] = float(lineTab[h+p])
                                                   if "worst_case" in self.cas :
-                                                       if Need_hospital_worstC[h][p] <= float(lineTab[h+p]) : 
+                                                       if Need_hospital_worstC[h][p] >= float(lineTab[h+p]) : 
                                                             Need_hospital_bestC[h][p] = float(lineTab[h+p])
                                                   if "worst_case" in self.cas :
                                                        Need_hospital_averageC[h][p] += float(lineTab[h+p])
@@ -233,14 +236,10 @@ class Modelize:
                                              elif c== "best_case" :
                                                   instance.Need_hospital = Need_hospital_bestC
                                                   sol, runtime = Model1_CBC(instance,self.Budget,temps_limite)
-                                                  sol.write(instance, "best_case",self.datafileName,c)
-                                                  #res.append(sol.objective_value)
                                                   
                                              elif c == "average_case" : 
                                                   instance.Need_hospital = Need_hospital_averageC
                                                   sol, runtime = Model1_CBC(instance,self.Budget,temps_limite)
-                                                  sol.write(instance, "average_case",self.datafileName,c)
-                                                  #res.append(sol.objective_value)
                                              else : 
                                                   print("Le cas '", c," ' n'est pas reconnu. Le choix est entre average_case, worst_case, et  best_case")
                                                   break
@@ -280,8 +279,6 @@ class Modelize:
                                                                            # Need_hospital = Need_hospital / nb_scenarios
                                                                  instance.Need_hospital = Need_hospital
                                                                  sol2, runtime = Model2_CBC_sol_ini(instance,self.Budget,temps_limite,centres_fixes_initiaux)
-                                                                 sol2.write(instance,"test", self.datafileName,c)
-                                                                 #res.append(sol2.objective_value)
                                                                            # sol.print(instance)
                                                                            # print("Budget1 : ",self.Budget)
                                                                  qtt_manquante__moyenne[iterateur] += sol2.objective_value

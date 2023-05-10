@@ -4,6 +4,7 @@ from modele_avec_sol_ini import *
 from TERmodele1 import *
 import pandas as pd
 from checker import *
+import matplotlib.pyplot as plt
 
 
 
@@ -50,7 +51,7 @@ class Modelize:
                                                   sol, runtime = Model1_CBC(instance,self.Budget,temps_limite)
                                                   # sol.print(instance)
                                                   # print("Budget1 : ",self.Budget)
-                                                  qtt_manquante__moyenne += sol.objective_value
+                                                  qtt_manquante__moyenne += sol.valeur_obj
                                                   # print(" qtt manquante totale : ",qtt_manquante__moyenne)
                               # print("nb scenarios : ",nb_scenarios)
                               qtt_manquante__moyenne = qtt_manquante__moyenne/nb_scenarios
@@ -94,14 +95,12 @@ class Modelize:
                               if int(lineTab[2]) == instance.time_horizon : #on vérifie qu'on soit bien dans le même cas que le déterministic
                                    
                                    count = np.zeros(instance.nb_locations) # va nous servir pour le critère de choix plus tard
-                                   compte_scenarios = 0
+                                   
+                                   Need_hospital_bestC = np.ones((instance.nb_hospitals,instance.time_horizon))*1000000
+                                   Need_hospital_worstC = np.zeros((instance.nb_hospitals,instance.time_horizon))
+                                   Need_hospital_averageC = np.zeros((instance.nb_hospitals,instance.time_horizon))
                                    for scenario in range(nb_scenarios):
-                                        compte_scenarios += 1
-                                        print("scenario  de training: ", compte_scenarios)
                                         Need_hospital = np.zeros((instance.nb_hospitals,instance.time_horizon))
-                                        Need_hospital_bestC = np.ones((instance.nb_hospitals,instance.time_horizon))*1000000
-                                        Need_hospital_worstC = np.zeros((instance.nb_hospitals,instance.time_horizon))
-                                        Need_hospital_averageC = np.zeros((instance.nb_hospitals,instance.time_horizon))
                                                   
                                         line = file.readline()
                                         lineTab = line.split()
@@ -111,27 +110,36 @@ class Modelize:
                                                   
                                                   ## on sauvegarde les cas aux cas où : 
                                                   if "best_case" in self.cas :
-                                                       if Need_hospital_bestC[h][p] <= float(lineTab[h+p]) : 
+                                                       if Need_hospital_bestC[h][p] >= float(lineTab[h+p]) : 
                                                             Need_hospital_bestC[h][p] = float(lineTab[h+p])
+                                                       
                                                   if "worst_case" in self.cas :
-                                                       if Need_hospital_worstC[h][p] >= float(lineTab[h+p]) : 
-                                                            Need_hospital_bestC[h][p] = float(lineTab[h+p])
-                                                  if "worst_case" in self.cas :
+                                                       if Need_hospital_worstC[h][p] <= float(lineTab[h+p]) : 
+                                                            Need_hospital_worstC[h][p] = float(lineTab[h+p])
+                                                       
+                                                  if "average_case" in self.cas :
                                                        Need_hospital_averageC[h][p] += float(lineTab[h+p])
+                                                       print("Need_hospital_averageC : ", Need_hospital_averageC)
                                                   
                                                   # print("debug 2 : ",Need_hospital)
-                                                  # Need_hospital = Need_hospital / nb_scenarios
+                                  
                                         instance.Need_hospital = Need_hospital
                                         sol, runtime = Model1_CBC(instance,self.Budget,temps_limite)
+                                        sol.print(instance)
                                         for centre in range(instance.nb_locations):
                                              for loc in range(instance.nb_locations):
                                                   if sol.centres_f[centre][loc] == 1:
                                                        count[loc] += 1
-                                   Need_hospital_averageC = Need_hospital_averageC / nb_scenarios
+                                   # Need_hospital_averageC = Need_hospital_averageC / nb_scenarios
                                    # on boucle sur les différents cas demandés
+                                   if "average_case" in self.cas :
+                                        Need_hospital_averageC = Need_hospital_averageC / nb_scenarios
+                                   print("#################### best case " ,Need_hospital_bestC, "################")
+                                   print("#################### worst case " ,Need_hospital_worstC, "################")
+                                   print("#################### average case " ,Need_hospital_averageC, "################")
                                    qtt_manquante__moyenne = np.zeros(len(self.cas))
                                    iterateur = 0
-                                   #res = []
+                                   df = pd.DataFrame()
                                    for c in self.cas:
                                         # if(float(c)): # on vérifie si c'est bien un float, ça pourrait être best_case ou worst_case ou average_case 
                                         try :
@@ -141,7 +149,8 @@ class Modelize:
                                              for i in range(instance.nb_locations):
                                                   if count[i] >= c*(nb_scenarios):
                                                        centres_fixes_initiaux[i] += 1
-                                                  
+
+
                                              # rajouté : 
                                              with open(self.datafileName +"/test.txt", "r") as file2:
                                              # print("debug 1 ")
@@ -150,13 +159,15 @@ class Modelize:
                                                   lineTab = line.split()
                                                   nb_scenarios2 = int(lineTab[1])
                                                   # print("nb_scenarios = ",nb_scenarios)
+                                                  #worst_case = float('inf')
+                                                  
                                                   if int(lineTab[0]) == instance.nb_hospitals : 
                                                        if int(lineTab[2]) == instance.time_horizon : #on vérifie qu'on soit bien dans le même cas que le déterministic
                                                             # if cas == "average_case":
                                                             # qtt_manquante__moyenne = 0
-                                                            
+                                                            sc = 0
+                                                            e = []
                                                             for scenario in range(nb_scenarios2):
-                                                                 #res.append([self.datafileName + "test" + str(scenario)])
                                                                  Need_hospital = np.zeros((instance.nb_hospitals,instance.time_horizon))
                                                                  
                                                                  line = file2.readline()
@@ -169,13 +180,16 @@ class Modelize:
                                                                  # Need_hospital = Need_hospital / nb_scenarios
                                                                  instance.Need_hospital = Need_hospital
                                                                  sol2, runtime = Model2_CBC_sol_ini(instance,self.Budget,temps_limite,centres_fixes_initiaux)
-                                                                 #print(sol2)
-                                                                 sol2.write(instance, "Pourcentages" + str(scenario),self.datafileName,c)
-                                                                 #res[scenario].append(sol2.objective_value.getValue())
-                                                                 #print(res)
+                                                                 # sol2.print(instance)
+                                                                 print(f"la sol du scenario {sc} pour le cas {c} est : {float(sol2.valeur_obj)}")
+                                                                 e.append(float(sol2.valeur_obj))
                                                                  # sol.print(instance)
                                                                  # print("Budget1 : ",self.Budget)
-                                                                 qtt_manquante__moyenne[iterateur] += sol2.objective_value
+                                                                 qtt_manquante__moyenne[iterateur] += sol2.valeur_obj
+                                                                 sc +=1
+                                                            print( " e : ", e)
+                                                            df.insert(0,f"{c}",e)
+                                                            print("df : ", df)
                                                                  # print(" qtt manquante totale : ",qtt_manquante__moyenne)
                                              # print("nb scenarios : ",nb_scenarios)
                                              qtt_manquante__moyenne[iterateur] = qtt_manquante__moyenne[iterateur]/nb_scenarios2
@@ -186,8 +200,7 @@ class Modelize:
                                              if c == "worst_case" :
                                                   instance.Need_hospital = Need_hospital_worstC
                                                   sol, runtime = Model1_CBC(instance,self.Budget,temps_limite)
-                                                  sol.write(instance, "worst_case",self.datafileName,c)
-                                                  #res.append(sol.objective_value)
+                                                  print("##### POUR LE WORST CASE SOLUTION : " , sol.print(instance))
                                                   # centres_fixes_initiaux = np.zeros(instance.nb_locations)
                                                   # for centre in range(instance.nb_locations):
                                                   #      for loc in range(instance.nb_locations):
@@ -226,7 +239,7 @@ class Modelize:
                                                   #                     sol2, runtime = Model2_CBC_sol_ini(instance,self.Budget,temps_limite,centres_fixes_initiaux)
                                                   #                          # sol.print(instance)
                                                   #                          # print("Budget1 : ",self.Budget)
-                                                  #                     qtt_manquante__moyenne[iterateur] += sol2.objective_value
+                                                  #                     qtt_manquante__moyenne[iterateur] += sol2.valeur_obj
                                                   #                          # print(" qtt manquante totale : ",qtt_manquante__moyenne)
                                                   #      # print("nb scenarios : ",nb_scenarios)
                                                   # qtt_manquante__moyenne[iterateur] = qtt_manquante__moyenne[iterateur]/nb_scenarios2
@@ -236,10 +249,12 @@ class Modelize:
                                              elif c== "best_case" :
                                                   instance.Need_hospital = Need_hospital_bestC
                                                   sol, runtime = Model1_CBC(instance,self.Budget,temps_limite)
+                                                  print("##### POUR LE BEST CASE SOLUTION : " , sol.print(instance))
                                                   
                                              elif c == "average_case" : 
                                                   instance.Need_hospital = Need_hospital_averageC
                                                   sol, runtime = Model1_CBC(instance,self.Budget,temps_limite)
+                                                  print("##### POUR LE AVERAGE CASE SOLUTION : " , sol.print(instance))
                                              else : 
                                                   print("Le cas '", c," ' n'est pas reconnu. Le choix est entre average_case, worst_case, et  best_case")
                                                   break
@@ -265,7 +280,8 @@ class Modelize:
                                                        if int(lineTab[2]) == instance.time_horizon : #on vérifie qu'on soit bien dans le même cas que le déterministic
                                                                       # if cas == "average_case":
                                                                       # qtt_manquante__moyenne = 0
-                                                                      
+                                                            sc = 0
+                                                            e = []
                                                             for scenario in range(nb_scenarios2):
                                                                  Need_hospital = np.zeros((instance.nb_hospitals,instance.time_horizon))
                                                                            
@@ -279,9 +295,14 @@ class Modelize:
                                                                            # Need_hospital = Need_hospital / nb_scenarios
                                                                  instance.Need_hospital = Need_hospital
                                                                  sol2, runtime = Model2_CBC_sol_ini(instance,self.Budget,temps_limite,centres_fixes_initiaux)
-                                                                           # sol.print(instance)
+                                                                 print(f"la sol du scenario {sc} pour le cas {c} est : {float(sol2.valeur_obj)}")
+                                                                 e.append(float(sol2.valeur_obj))
+                                                                 # sol2.print(instance)
                                                                            # print("Budget1 : ",self.Budget)
-                                                                 qtt_manquante__moyenne[iterateur] += sol2.objective_value
+                                                                 qtt_manquante__moyenne[iterateur] += sol2.valeur_obj
+                                                                 sc += 1
+                                                            print( "e : " , e)
+                                                            df.insert(0,f"{c}",e)
                                                                            # print(" qtt manquante totale : ",qtt_manquante__moyenne)
                                                        # print("nb scenarios : ",nb_scenarios)
                                              qtt_manquante__moyenne[iterateur] = qtt_manquante__moyenne[iterateur]/nb_scenarios2
@@ -323,7 +344,7 @@ class Modelize:
                               #                     sol, runtime = Model2_CBC_sol_ini(instance,self.Budget,temps_limite,centres_fixes_initiaux)
                               #                     # sol.print(instance)
                               #                     # print("Budget1 : ",self.Budget)
-                              #                     qtt_manquante__moyenne += sol.objective_value
+                              #                     qtt_manquante__moyenne += sol.valeur_obj
                               #                     # print(" qtt manquante totale : ",qtt_manquante__moyenne)
                               # # print("nb scenarios : ",nb_scenarios)
                               # qtt_manquante__moyenne = qtt_manquante__moyenne/nb_scenarios
@@ -331,6 +352,21 @@ class Modelize:
                          
                     # if affichage == True :
                     #     sol.print(instance)
+                    print("df final = " , df )
+                    # print("df réarrangé : ", df[self.cas])
+                    with open('solusolu.txt', 'w') as f:
+                        dfAsString = df.to_string(header=True, index=True)
+                        f.write(dfAsString)
+                    f.close()
+                    # plt.plot()
+                    for col in df.columns:
+                         # print(df[col])
+                         plt.plot(df[col], label = col)
+                         plt.legend()
+                         plt.xlabel('Scenario')
+                         plt.ylabel('Valeurs')
+                         plt.title('Courbes des différents cas')
+                    plt.show()
                     return qtt_manquante__moyenne
                else :
                     print("ERREUR : {} n'est pas compris. il faut écrire True ou False".format(self.sol_init)) # ici c'est si on met une solution initiale avec des centres fixes déjà construits

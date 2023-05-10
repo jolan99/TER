@@ -1,8 +1,8 @@
 # import pandas as pd
 # from read_instance import *
 class solution:
-     def __init__(self,objective_value,cost,centres_m,centres_f,qtt_recue_hosp,qtt_collect,stock,qtt_manquante,nom_instance,time):
-        self.objective_value = objective_value
+     def __init__(self,valeur_obj,cost,centres_m,centres_f,qtt_recue_hosp,qtt_collect,stock,qtt_manquante,nom_instance,time):
+        self.valeur_obj = valeur_obj
         self.cost = cost
         self.centres_m = centres_m
         self.centres_f = centres_f
@@ -16,7 +16,7 @@ class solution:
         print("Solution trouvée")
         ###  le code suivant affiche quels centres sont placés, où et quand : 
 
-        print("La quantite de sang manquante est ", self.objective_value, " et la solution a coute " , self.cost)
+        print("La quantite de sang manquante est ", self.valeur_obj, " et la solution a coute " , self.cost)
         for l in range(instance.nb_locations):
             for p in range(instance.time_horizon):
                 for m in range(instance.nb_locations):
@@ -65,7 +65,7 @@ class solution:
                     fixe += str(l) +", "
         with open("solution" + file[8:] +"/"+ name + "_"+ str(cas), "w") as fichier:
             fichier.write("------" + "solution" + file[8:] +"/"+ name + "-------\n")
-            fichier.write("\nLa quantité de sang manquante " + str(self.objective_value) + "calculée en ...\n")
+            fichier.write("\nLa quantité de sang manquante " + str(self.valeur_obj) + "calculée en ...\n")
             fichier.write("Le coût de ka solution est " +  str(self.cost) +" et le budjet est de ...\n")
             fichier.write("\nLes centres fixes sont positionnés aux localisations " + fixe+"\n")
             for p in range(inst.time_horizon):

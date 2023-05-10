@@ -101,11 +101,11 @@ def Checker(sol,instance):
             
             # print("besoin total créé ",besoin_total)
     if besoin_total - qtt_totale > 0 : # == s'il n'y a pas eu assez de sang
-        # print("sol.objective_value : ",sol.objective_value,"(besoin_total - qtt_totale)*1.1 : ",(besoin_total - qtt_totale)*1.1)
-        # print("sol.objective_value : ",sol.objective_value,"(besoin_total - qtt_totale)*0.9 : ",(besoin_total - qtt_totale)*0.9)
+        # print("sol.valeur_obj : ",sol.valeur_obj,"(besoin_total - qtt_totale)*1.1 : ",(besoin_total - qtt_totale)*1.1)
+        # print("sol.valeur_obj : ",sol.valeur_obj,"(besoin_total - qtt_totale)*0.9 : ",(besoin_total - qtt_totale)*0.9)
 
-        if (float(sol.objective_value) <= (besoin_total - qtt_totale)*0.09)or(float(sol.objective_value) >= (besoin_total - qtt_totale)*1.01 ) :
-            print("ERREUR : la valeur de l'objectif est de {} mais devrait être de {}".format(sol.objective_value,(besoin_total - qtt_totale)))
+        if (float(sol.valeur_obj) <= (besoin_total - qtt_totale)*0.09)or(float(sol.valeur_obj) >= (besoin_total - qtt_totale)*1.01 ) :
+            print("ERREUR : la valeur de l'objectif est de {} mais devrait être de {}".format(sol.valeur_obj,(besoin_total - qtt_totale)))
             return False 
     
     # faire un checker : on ne peut pas envoyer de sang s'il n'y a pas de centre, et ça ne doit pas dépasser la capacité max

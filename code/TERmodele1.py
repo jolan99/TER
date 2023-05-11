@@ -88,65 +88,7 @@ def Model1_CBC(instance,Budget,temps_limite):
             )
         )
 
-        # coût :
-
-        # model.add_constr(
-        #     xsum(
-        #         instance.collection_cost
-        #         * xsum(
-        #             xsum(x[l][p][d] for d in range(instance.nb_donors))
-        #             for l in range(instance.nb_locations)
-        #         )
-        #         for p in range(instance.time_horizon)
-        #     )
-        #     + xsum(
-        #         xsum(
-        #             instance.cost_temp_facility * gam[m][l][0]
-        #             for m in range(instance.nb_locations)
-        #         )
-        #         for l in range(instance.nb_locations)
-        #     )
-        #     + xsum(
-        #         xsum(
-        #             instance.cost_perm_facility * alpha[f][l]
-        #             for f in range(instance.nb_locations)
-        #         )
-        #         for l in range(instance.nb_locations)
-        #     )
-        #     + xsum(
-        #             xsum(
-        #                 s[h][p + 1] * instance.storage_cost
-        #                 for p in range(instance.time_horizon)
-        #             )
-        #         for h in range(instance.nb_hospitals)
-        #     )
-        #     + xsum(
-        #         xsum(
-        #             xsum((y[l][h][p]* instance.dis_loc_hosp[h][l]* instance.transportation_cost) for l in range(instance.nb_locations))
-        #             for h in range(instance.nb_hospitals)
-        #         )
-        #         for p in range(instance.time_horizon)
-        #     )
-        #     + xsum(
-        #         xsum(
-        #             xsum(
-        #                 xsum(
-        #                     instance.dist_locations[l][lbis]*(
-        #                         gam[m][lbis][p + 1]
-        #                         - xsum(gam[m][k][p] for k in range(instance.nb_locations))
-        #                         + gam[m][l][p]
-        #                     )
-        #                     for lbis in range(instance.nb_locations)
-        #                 )
-        #                 for l in range(instance.nb_locations)
-        #             )
-        #             for m in range(instance.nb_locations)
-        #         )
-        #         for p in range(instance.time_horizon-1)
-        #     )
-        #     * instance.cost_moving_facility
-        #     <= Budget
-        # ,name="contrainte_budget")
+       #coût : 
 
         model.add_constr(
             xsum(
@@ -282,6 +224,7 @@ def Model1_CBC(instance,Budget,temps_limite):
             model.add_constr(s[h][0] == 0,name="c2(" + str(h)+")")
 
 
+        # linéarisation de la contrainte de cout : on fixe combien est transporté entre deux localisations
         for l in range(instance.nb_locations):
             for lbis in range(instance.nb_locations):
                 for m in range(instance.nb_locations):

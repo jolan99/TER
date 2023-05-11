@@ -21,6 +21,14 @@ def Model2_CBC_sol_ini(instance,Budget,temps_limite,centres_fixes_initiaux):
             for l in range(instance.nb_locations)
         ]for m in range(instance.nb_locations)]
 
+        z = [[[[model.add_var(
+            name = "Z(" + str(l) + str(lbis) +str(p)+str(m)+ ")", lb=0, ub=1, var_type=BINARY
+                ) 
+                for m in range(instance.nb_locations)
+                ]
+            for p in range(instance.time_horizon)
+            ]for lbis in range(instance.nb_locations)]for l in range(instance.nb_locations)]
+
         # alpha = [
         #     [
         #         model.add_var(
@@ -122,9 +130,7 @@ def Model2_CBC_sol_ini(instance,Budget,temps_limite,centres_fixes_initiaux):
                     xsum(
                         xsum(
                             instance.dist_locations[l][lbis]*(
-                                gam[m][lbis][p + 1]
-                                - xsum(gam[m][k][p] for k in range(instance.nb_locations))
-                                + gam[m][l][p]
+                                z[l][lbis][p+1][m]
                             )
                             for lbis in range(instance.nb_locations)
                         )
@@ -214,6 +220,15 @@ def Model2_CBC_sol_ini(instance,Budget,temps_limite,centres_fixes_initiaux):
         for h in range(instance.nb_hospitals):
             model.add_constr(s[h][0] == 0,name="c2(" + str(h)+")")
 
+        # linéarisation de la contrainte de cout : on fixe combien est transporté entre deux localisations
+        for l in range(instance.nb_locations):
+            for lbis in range(instance.nb_locations):
+                for m in range(instance.nb_locations):
+                    for p in range(instance.time_horizon -1):
+                        model.add_constr(z[l][lbis][p][m] <= gam[m][l][p+1])
+                        model.add_constr(z[l][lbis][p][m] <= gam[m][lbis][p])
+                        model.add_constr(z[l][lbis][p][m] >= gam[m][l][p+1] +gam[m][lbis][p] - 1)
+
         #essais : 
         # for h in range(instance.nb_hospitals):
         #     for p in range(instance.time_horizon):
@@ -252,64 +267,7 @@ def Model2_CBC_sol_ini(instance,Budget,temps_limite,centres_fixes_initiaux):
 
         # Si le modèle a été résolu à l'optimalité ou si une solution a été trouvée dans le temps limite accordé
         if model.num_solutions > 0:
-            # cost = (sum(
-            #     instance.collection_cost
-            #     * sum(
-            #         sum(x[l][p][d].x for d in range(instance.nb_donors))
-            #         for l in range(instance.nb_locations)
-            #     )
-            #     for p in range(instance.time_horizon)
-            # )
-            # + sum(
-            #     sum(
-            #         instance.cost_temp_facility * gam[m][l][0].x
-            #         for m in range(instance.nb_locations)
-            #     )
-            #     for l in range(instance.nb_locations)
-            # )
-            # + xsum(
-            #     xsum(
-            #         instance.capacity_perm_facility * alpha[f][l].x
-            #         for f in range(instance.nb_locations)
-            #     )
-            #     for l in range(instance.nb_locations)
-            # )
-            # + xsum(
-            #     (
-            #         xsum(
-            #             s[h][p + 1].x * instance.storage_cost
-            #             for p in range(instance.time_horizon)
-            #         )
-            #     )
-            #     for h in range(instance.nb_hospitals)
-            # )
-            # + xsum(
-            #     xsum(
-            #         xsum(y[l][h][p].x for l in range(instance.nb_locations))
-            #         * instance.transportation_cost
-            #         * instance.dis_loc_hosp[h][l]
-            #         for h in range(instance.nb_hospitals)
-            #     )
-            #     for p in range(instance.time_horizon)
-            # )
-            # + xsum(
-            #     xsum(
-            #         xsum(
-            #             xsum(
-            #                 instance.dist_locations[l][lbis]*(
-            #                     gam[lbis][m][p + 1].x
-            #                     - xsum(gam[k][m][p].x for k in range(instance.nb_locations))
-            #                     + gam[l][m][p].x
-            #                 )
-            #                 for lbis in range(instance.nb_locations)
-            #             )
-            #             for l in range(instance.nb_locations)
-            #         )
-            #         for m in range(instance.nb_locations)
-            #     )
-            #     for p in range(instance.time_horizon-1)
-            # )
-            # * instance.cost_moving_facility)
+            
 
             cost = (sum(instance.collection_cost* sum(sum(x[l][p][d].x for d in range(instance.nb_donors))for l in range(instance.nb_locations))for p in range(instance.time_horizon)) + sum(sum((instance.cost_temp_facility * gam[m][l][0].x) for m in range(instance.nb_locations))for l in range(instance.nb_locations))
             + sum(
@@ -390,12 +348,6 @@ def Model2_CBC_sol_ini(instance,Budget,temps_limite,centres_fixes_initiaux):
                 qtt_manquante[h][p] = I[h][p]
         sol = solution(valeur_obj,cost,centres_m,centres_f,qtt_recue_hosp,qtt_collect,stock,qtt_manquante,instance.datafileName,runtime)
 
-        # for h in range(instance.nb_hospitals):
-        #     for p in range(instance.time_horizon):
-        #         # print("debugggg : ")
-                # print("l'hôpital {} a besoin de {}, reçoit {}, stocke {} et manque {} de sang et il y avait avant {}".format(h,instance.Need_hospital[h][p],xsum(y[l][h][p].x for l in range(instance.nb_locations)),s[h][p+1].x,I[h][p].x,s[h][p].x))
-                # print("qtt manquante :")
-                # print(I[h][p].x + s[h][p+1].x -instance.Need_hospital[h][p] + xsum(y[l][h][p].x for l in range(instance.nb_locations)) + s[h][p].x)
         return sol,runtime
     
     else :
